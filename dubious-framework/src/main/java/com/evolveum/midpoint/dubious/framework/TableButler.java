@@ -5,22 +5,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class TableButler extends ResourceButler {
+public class TableButler extends ResourceButler<JdbcTemplate> {
 
     private String resourceOid;
-
-    private JdbcTemplate jdbcTemplate;
 
     public TableButler(String resourceOid) {
         this.resourceOid = resourceOid;
     }
 
     public TableButler(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+        super(jdbcTemplate);
     }
 
+    @Override
     public void init() {
-        if (jdbcTemplate != null) {
+        if (getClient() != null) {
+            // client already initialized
             return;
         }
 
@@ -28,10 +28,6 @@ public class TableButler extends ResourceButler {
             throw new IllegalStateException("Resource oid must be defined");
         }
 
-
-    }
-
-    public void destroy() {
 
     }
 }

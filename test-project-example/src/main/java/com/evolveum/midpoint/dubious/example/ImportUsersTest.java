@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.dubious.example;
 
+import com.evolveum.midpoint.dubious.framework.ButlerBaseTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
@@ -12,16 +13,16 @@ import org.testng.annotations.Test;
  */
 @ContextConfiguration(classes = EnvConfig.class)
 @TestPropertySource("classpath:configuration.properties")
-public class ImportUsersTest extends BaseTest {
+public class ImportUsersTest extends ButlerBaseTest {
 
     @Autowired
     private JdbcTemplate tableResource;
 
     @Test
     public void importUser() throws Exception {
-        assertUsersCount(0L);
-
-        tableResource.update("insert into users (givenName, familyName, active) values (?,?,?)", "john", "doe", true);
+//        assertUsersCount(0L);
+//
+//        tableResource.update("insert into users (givenName, familyName, active) values (?,?,?)", "john", "doe", true);
 
         assertUsersCount(1L);
         // add user to DB table

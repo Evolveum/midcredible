@@ -1,10 +1,9 @@
-package com.evolveum.midpoint.dubious.example;
+package com.evolveum.midpoint.dubious.framework;
 
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class BaseTest extends AbstractTestNGSpringContextTests {
-
+public class ButlerBaseTest extends AbstractTestNGSpringContextTests {
 }

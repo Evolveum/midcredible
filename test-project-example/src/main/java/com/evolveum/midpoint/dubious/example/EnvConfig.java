@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.dubious.example;
 
-import org.postgresql.Driver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,13 +21,11 @@ public class EnvConfig {
     @Value("${fakedb.password}")
     private String fakedbPassword;
 
-    static{
-        Driver.isRegistered();  //todo wtf? why it's there, why postgresql driver doesn't register itself automatically
-    }
-
     @Bean
     public DataSource tableDatasource() {
-        return new SingleConnectionDataSource(fakedbUrl, fakedbUsername, fakedbPassword, true);
+        SingleConnectionDataSource ds = new SingleConnectionDataSource(fakedbUrl, fakedbUsername, fakedbPassword, true);
+        ds.setDriverClassName("org.postgresql.Driver");
+        return ds;
     }
 
     @Bean
