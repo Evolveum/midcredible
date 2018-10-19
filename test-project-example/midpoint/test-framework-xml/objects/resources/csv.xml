@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource 	oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb"
+             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+             xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+             xmlns:my="http://whatever.com/my"
+             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+    <name>csv resource</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration>
+        <icfc:configurationProperties
+                xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <icfccsvfile:filePath>/Users/lazyman/Work/monoted/projects/ek/git/test-framework/midpoint/test-framework-xml/users.csv</icfccsvfile:filePath>
+            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+            <icfccsvfile:fieldDelimiter>;</icfccsvfile:fieldDelimiter>
+            <icfccsvfile:multivalueDelimiter>,</icfccsvfile:multivalueDelimiter>
+            <icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:id</ref>
+            </attribute>
+
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                    <source>
+                        <path>$user/givenName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:familyName</ref>
+                <outbound>
+                    <source>
+                        <path>$user/familyName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+    </schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:active</cap:attribute>
+                    <cap:enableValue>true</cap:enableValue>
+                    <cap:disableValue>false</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+</resource>
+

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource oid="04afeda6-394b-11e6-8cbe-abf7ff430056"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:my="http://myself.me/schemas/whatever">
+
+    <name>table resource</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration>
+
+        <icfc:configurationProperties
+                xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
+            <icscdbtable:port>5432</icscdbtable:port>
+            <icscdbtable:host>localhost</icscdbtable:host>
+            <icscdbtable:user>testframework</icscdbtable:user>
+            <icscdbtable:password><clearValue>testframework</clearValue></icscdbtable:password>
+            <icscdbtable:database>testframework</icscdbtable:database>
+            <icscdbtable:table>users</icscdbtable:table>
+            <icscdbtable:keyColumn>id</icscdbtable:keyColumn>
+            <icscdbtable:jdbcDriver>org.postgresql.Driver</icscdbtable:jdbcDriver>
+            <icscdbtable:jdbcUrlTemplate>jdbc:postgresql://%h:%p/%d</icscdbtable:jdbcUrlTemplate>
+            <icscdbtable:enableEmptyString>false</icscdbtable:enableEmptyString>
+            <icscdbtable:rethrowAllSQLExceptions>true</icscdbtable:rethrowAllSQLExceptions>
+            <icscdbtable:nativeTimestamps>false</icscdbtable:nativeTimestamps>
+            <icscdbtable:allNative>false</icscdbtable:allNative>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+
+        <objectType>
+            <default>true</default>
+            <kind>account</kind>
+            <intent>default</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:givenname</ref>
+                <inbound>
+                    <target>
+                        <path>$user/name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:familyname</ref>
+                <inbound>
+                    <source>
+                        <path>$user/familyName</path>
+                    </source>
+                </inbound>
+            </attribute>
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+    </schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:active</cap:attribute>
+                    <cap:enableValue>true</cap:enableValue>
+                    <cap:disableValue>false</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+
+</resource>
