@@ -73,7 +73,7 @@ public class ImportUsersTest extends ButlerBaseTest {
 
 		AssertJUnit.assertEquals(OperationResultStatusType.SUCCESS, importResult.getStatus());
 
-		service.shadows().oid(shadow.getOid()).
+		service.shadows().oid(shadow.getOid());
 
 //        OperationResultType result = service.resources().oid("ef2bc95b-76e0-59e2-86d6-9999cccccccc").test();
 //        System.out.println(result);
@@ -96,8 +96,8 @@ public class ImportUsersTest extends ButlerBaseTest {
 //
 //        // validate target resources
 //
-		// cleanup
-		tableResource.execute("delete from users");
+				// cleanup
+						tableResource.execute("delete from users");
 
 //        service.users().oid(result.getOid()).delete();
 	}
