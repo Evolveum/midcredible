@@ -1,16 +1,11 @@
 package com.evolveum.midpoint.dubious.framework;
 
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -30,12 +25,7 @@ public class TableButler extends JdbcButler {
 	}
 
 	@Override
-	public void init() throws Exception {
-		if (getClient() != null) {
-			// client already initialized
-			return;
-		}
-
+	public JdbcTemplate init() throws Exception {
 		if (resourceOid == null) {
 			throw new IllegalStateException("Resource oid must be defined");
 		}
@@ -64,7 +54,7 @@ public class TableButler extends JdbcButler {
 		SingleConnectionDataSource ds = new SingleConnectionDataSource(jdbcUrl, username, password, true);
 		ds.setDriverClassName(driver);
 
-		new JdbcTemplate(ds);
+		return new JdbcTemplate(ds);
 	}
 
 	private String formatUrlTemplate(String url, String host, String port, String database) {
@@ -91,56 +81,5 @@ public class TableButler extends JdbcButler {
 		}
 
 		return sb.toString();
-	}
-
-	private ConfigurationPropertiesType getConfigurationProperties(ResourceType resource) {
-		ConnectorConfigurationType configuration = resource.getConnectorConfiguration();
-		for (Object object : configuration.getAny()) {
-			if (object instanceof ConfigurationPropertiesType) {
-				return (ConfigurationPropertiesType) object;
-			}
-
-			if (!(object instanceof JAXBElement)) {
-				continue;
-			}
-
-			JAXBElement jaxb = (JAXBElement) object;
-			if (!(jaxb.getValue() instanceof ConfigurationPropertiesType)) {
-				continue;
-			}
-
-			return (ConfigurationPropertiesType) jaxb.getValue();
-		}
-
-		return null;
-	}
-
-	private String getValue(ConfigurationPropertiesType config, String name) {
-		return getValue(config, new QName(name));
-	}
-
-	private String getValue(ConfigurationPropertiesType config, QName name) {
-		if (config == null) {
-			return null;
-		}
-
-		for (Object obj : config.getAny()) {
-			if (!(obj instanceof Element)) {
-				continue;
-			}
-
-			Element e = (Element) obj;
-			if (!name.getLocalPart().equals(e.getLocalName())) {
-				continue;
-			}
-
-			if (StringUtils.isNotEmpty(name.getNamespaceURI()) && !name.getNamespaceURI().equals(e.getNamespaceURI())) {
-				continue;
-			}
-
-			return e.getTextContent();
-		}
-
-		return null;
 	}
 }

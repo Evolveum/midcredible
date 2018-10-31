@@ -13,6 +13,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -20,16 +21,17 @@ import javax.xml.namespace.QName;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@ContextConfiguration()
+@ContextConfiguration(classes = com.evolveum.midpoint.dubious.example.ContextConfiguration.class)
 public class ImportUsersTest extends ButlerBaseTest {
 
 	private TableButler tableButler;
 
+	@BeforeClass
 	@Override
 	public void beforeClass() throws Exception {
 		super.beforeClass();
 
-		tableButler = new TableButler("table", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
+		tableButler = new TableButler("sometable", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
 		tableButler.init();
 	}
 
@@ -58,8 +60,9 @@ public class ImportUsersTest extends ButlerBaseTest {
 		SearchResult<ShadowType> result = service.shadows().search().queryFor(ShadowType.class)
 				.item(path).eq("administrator").and()
 				.item(new QName("kind")).eq(ShadowKindType.ACCOUNT).and()
-				.item(new QName("resourceRef")).ref("ef2bc95b-76e0-59e2-86d6-9999cccccccc").get();
+				.item(new QName("resourceRef")).ref("04afeda6-394b-11e6-8cbe-abf7ff430056").get();
 
+		AssertJUnit.assertNotNull(result);
 		AssertJUnit.assertFalse(result.isEmpty());
 		ShadowType shadow = result.get(0);
 
