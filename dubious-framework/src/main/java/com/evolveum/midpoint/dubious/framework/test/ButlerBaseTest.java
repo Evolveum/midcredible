@@ -5,6 +5,8 @@ import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbServiceBuilder;
 import com.evolveum.midpoint.dubious.framework.Context;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeClass;
 
@@ -28,11 +30,13 @@ public class ButlerBaseTest extends AbstractTestNGSpringContextTests {
 
 	public static final String REST_URL_PREFIX = "/ws/rest";
 
+	private static final Logger LOG = LoggerFactory.getLogger(ButlerBaseTest.class);
+
 	private Context context;
 
 	@BeforeClass
 	public void beforeClass() throws Exception {
-		System.out.println("bb");
+		LOG.info("Initializing butler context");
 
 		Properties props = new Properties();
 
@@ -46,14 +50,17 @@ public class ButlerBaseTest extends AbstractTestNGSpringContextTests {
 		if (!url.endsWith(REST_URL_PREFIX)) {
 			url += REST_URL_PREFIX;
 		}
+
 		String username = props.getProperty(P_MIDPOINT_USERNAME);
 		String password = props.getProperty(P_MIDPOINT_PASSWORD);
-		String auth = props.getProperty(P_MIDPOINT_AUTH_TYPE);
 
+		String auth = props.getProperty(P_MIDPOINT_AUTH_TYPE);
 		AuthenticationType authType = AuthenticationType.BASIC;
 		if (StringUtils.isNotEmpty(auth)) {
 			authType = AuthenticationType.valueOf(auth);
 		}
+
+		LOG.debug("Using {} as midpoint rest url, authenticating as {} using {} authentication", new Object[]{url, username, authType});
 
 		try {
 			RestJaxbServiceBuilder builder = new RestJaxbServiceBuilder();
@@ -70,6 +77,8 @@ public class ButlerBaseTest extends AbstractTestNGSpringContextTests {
 		} catch (IOException ex) {
 			throw new IllegalStateException("Couldn't create butler context", ex);
 		}
+
+		LOG.info("Butler context initialized");
 	}
 
 	public Context getContext() {

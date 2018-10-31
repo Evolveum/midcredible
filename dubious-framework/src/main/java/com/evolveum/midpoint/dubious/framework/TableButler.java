@@ -3,7 +3,6 @@ package com.evolveum.midpoint.dubious.framework;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -35,11 +34,6 @@ public class TableButler extends JdbcButler {
 		ResourceType resource = midpoint.resources().oid(resourceOid).get();
 
 		ConfigurationPropertiesType configuration = getConfigurationProperties(resource);
-
-		String datasource = getValue(configuration, "datasource"); // todo
-		if (StringUtils.isNotBlank(datasource)) {
-			throw new IllegalStateException("Resource contains datasource configuration, we're unable to obtain datasource connection this way");
-		}
 
 		String driver = getValue(configuration, "jdbcDriver");
 		String url = getValue(configuration, "jdbcUrlTemplate");
