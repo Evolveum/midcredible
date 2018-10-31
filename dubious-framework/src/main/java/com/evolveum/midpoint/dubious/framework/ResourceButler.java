@@ -3,6 +3,7 @@ package com.evolveum.midpoint.dubious.framework;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.w3c.dom.Element;
@@ -57,7 +58,7 @@ public abstract class ResourceButler<T> {
 	}
 
 	protected T init() throws Exception {
-		return null;
+		throw new NotImplementedException("Subclasses should implement this method");
 	}
 
 	protected void destroy() throws Exception {

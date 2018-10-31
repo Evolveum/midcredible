@@ -30,6 +30,8 @@
         <spring.version>5.0.7.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
+        <commons.csv.version>1.6</commons.csv.version>
+        <directory.api.version>2.0.0.AM2</directory.api.version>
     </properties>
 
     <dependencies>
@@ -131,6 +133,20 @@
             <artifactId>h2</artifactId>
             <version>${h2.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- CSV -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>${commons.csv.version}</version>
+        </dependency>
+
+        <!-- LDAP -->
+        <dependency>
+            <groupId>org.apache.directory.api</groupId>
+            <artifactId>api-all</artifactId>
+            <version>${directory.api.version}</version>
         </dependency>
 
         <!-- TEST DEPENDENCIES -->

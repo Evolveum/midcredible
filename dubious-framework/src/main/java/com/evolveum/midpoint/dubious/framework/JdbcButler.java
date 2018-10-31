@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class JdbcButler extends ResourceButler<JdbcTemplate> {
+public abstract class JdbcButler extends ResourceButler<JdbcTemplate> {
 
 	public JdbcButler(String id, Context context) {
 		super(id, context);

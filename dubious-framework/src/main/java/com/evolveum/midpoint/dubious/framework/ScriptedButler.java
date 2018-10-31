@@ -14,4 +14,10 @@ public class ScriptedButler extends JdbcButler {
 	public ScriptedButler(String id, Context context, JdbcTemplate client) {
 		super(id, context, client);
 	}
+
+	@Override
+	protected JdbcTemplate init() throws Exception {
+		// todo implement
+		return super.init();
+	}
 }

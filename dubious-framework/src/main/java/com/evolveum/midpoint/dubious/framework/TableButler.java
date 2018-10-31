@@ -6,6 +6,8 @@ import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.C
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
+import java.util.Map;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -75,5 +77,14 @@ public class TableButler extends JdbcButler {
 		}
 
 		return sb.toString();
+	}
+
+	private long count() {
+		return count(null, null);
+	}
+
+	private long count(String where, Map<String, Object> params) {
+		// todo implement
+		return 0L;
 	}
 }
