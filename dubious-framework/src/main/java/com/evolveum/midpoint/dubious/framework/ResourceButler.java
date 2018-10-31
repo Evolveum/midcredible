@@ -1,29 +1,48 @@
 package com.evolveum.midpoint.dubious.framework;
 
+import org.apache.commons.lang3.Validate;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public abstract class ResourceButler<T> {
 
-    private T client;
+	private String id;
+	private Context context;
+	private T client;
 
-    public ResourceButler() {
-        this(null);
-    }
+	public ResourceButler(String id, Context context) {
+		this(id, context, null);
+	}
 
-    public ResourceButler(T client) {
-        this.client = client;
-    }
+	public ResourceButler(String id, Context context, T client) {
+		Validate.notNull(id);
+		Validate.notNull(context);
 
-    public T getClient() {
-        return client;
-    }
+		this.id = id.replaceAll("^\\w", "");
+		this.context = context;
+		this.client = client;
 
-    protected void init() {
+		context.getButlers().put(this.id, this);
+	}
 
-    }
+	public String getId() {
+		return id;
+	}
 
-    protected void destroy() {
+	public Context getContext() {
+		return context;
+	}
 
-    }
+	public T getClient() {
+		return client;
+	}
+
+	protected void init() throws Exception {
+
+	}
+
+	protected void destroy() throws Exception {
+
+	}
 }

@@ -1,20 +1,17 @@
 package com.evolveum.midpoint.dubious.example;
 
 import com.evolveum.midpoint.client.api.SearchResult;
-import com.evolveum.midpoint.client.impl.restjaxb.AuthenticationType;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
-import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbServiceBuilder;
+import com.evolveum.midpoint.dubious.framework.Context;
+import com.evolveum.midpoint.dubious.framework.TableButler;
 import com.evolveum.midpoint.dubious.framework.test.ButlerBaseTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -23,41 +20,38 @@ import javax.xml.namespace.QName;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@ContextConfiguration(classes = EnvConfig.class)
-@TestPropertySource("classpath:configuration.properties")
+@ContextConfiguration()
 public class ImportUsersTest extends ButlerBaseTest {
 
-	@Autowired
-	private JdbcTemplate tableResource;
+	private TableButler tableButler;
 
-	@Value("${midpoint.url}")
-	private String midpointUrl;
-	@Value("${midpoint.rest.username}")
-	private String midpointUsername;
-	@Value("${midpoint.rest.password}")
-	private String midpointPassword;
+	@Override
+	public void beforeClass() throws Exception {
+		super.beforeClass();
+
+		tableButler = new TableButler("table", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
+		tableButler.init();
+	}
 
 	@Test
 	public void importUser() throws Exception {
+		JdbcTemplate tableResource = tableButler.getClient();
+
 		final String GIVEN_NAME = "John";
 		final String FAMILY_NAME = "Doe";
 		final boolean ACTIVE = true;
 
-		assertUsersCount(0L);
-
-		tableResource.update("insert into users (givenName, familyName, active) values (?,?,?)",
-				GIVEN_NAME, FAMILY_NAME, ACTIVE);
+//		assertUsersCount(0L);
+//
+//		tableResource.update("insert into users (givenName, familyName, active) values (?,?,?)",
+//				GIVEN_NAME, FAMILY_NAME, ACTIVE);
 
 		assertUsersCount(1L);
 		// add user to DB table
 
 		// import one user using MidPoint REST api
-		RestJaxbServiceBuilder builder = new RestJaxbServiceBuilder();
-		builder.url(midpointUrl)
-				.username(midpointUsername)
-				.password(midpointPassword)
-				.authentication(AuthenticationType.BASIC);
-		RestJaxbService service = builder.build();
+		Context ctx = getContext();
+		RestJaxbService service = ctx.getMidpoint();
 
 		ItemPathType path = new ItemPathType();
 		path.setValue("attributes/username");
@@ -96,14 +90,14 @@ public class ImportUsersTest extends ButlerBaseTest {
 //
 //        // validate target resources
 //
-				// cleanup
-						tableResource.execute("delete from users");
+		// cleanup
+		tableResource.execute("delete from users");
 
 //        service.users().oid(result.getOid()).delete();
 	}
 
 	private void assertUsersCount(long expectedCount) {
-		Number count = tableResource.queryForObject("select count(*) from users", Number.class);
+		Number count = tableButler.getClient().queryForObject("select count(*) from users", Number.class);
 		long lCount = count.longValue();
 
 		AssertJUnit.assertEquals(expectedCount, lCount);

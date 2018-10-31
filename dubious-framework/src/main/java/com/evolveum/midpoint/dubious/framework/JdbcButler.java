@@ -5,13 +5,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ScriptedButler extends JdbcButler {
+public class JdbcButler extends ResourceButler<JdbcTemplate> {
 
-	public ScriptedButler(String id, Context context) {
+	public JdbcButler(String id, Context context) {
 		super(id, context);
 	}
 
-	public ScriptedButler(String id, Context context, JdbcTemplate client) {
+	public JdbcButler(String id, Context context, JdbcTemplate client) {
 		super(id, context, client);
 	}
 }
