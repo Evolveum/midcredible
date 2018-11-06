@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.dubious.framework;
 
+import com.evolveum.midpoint.client.api.exception.AuthenticationException;
+import com.evolveum.midpoint.client.api.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
@@ -18,19 +21,30 @@ public abstract class ResourceButler<T> {
 
 	private String id;
 	private Context context;
+
+	private String resouceOid;
 	private T client;
 
 	public ResourceButler(String id, Context context) {
-		this(id, context, null);
+		this(id, context, null, null);
+	}
+
+	public ResourceButler(String id, Context context, String resourceOid) {
+		this(id, context, null, resourceOid);
 	}
 
 	public ResourceButler(String id, Context context, T client) {
+		this(id, context, client, null);
+	}
+
+	public ResourceButler(String id, Context context, T client, String resourceOid) {
 		Validate.notNull(id);
 		Validate.notNull(context);
 
 		this.id = id.replaceAll("[^\\w]", "");
 		this.context = context;
 		this.client = client;
+		this.resouceOid = resourceOid;
 
 		context.getButlers().put(this.id, this);
 	}
@@ -41,6 +55,10 @@ public abstract class ResourceButler<T> {
 
 	public Context getContext() {
 		return context;
+	}
+
+	public String getResouceOid() {
+		return resouceOid;
 	}
 
 	public T getClient() {
@@ -65,7 +83,15 @@ public abstract class ResourceButler<T> {
 
 	}
 
-	protected ConfigurationPropertiesType getConfigurationProperties(ResourceType resource) {
+	protected ResourceType getResource() throws AuthenticationException, ObjectNotFoundException {
+		Context ctx = getContext();
+		RestJaxbService midpoint = ctx.getMidpoint();
+		return midpoint.resources().oid(resouceOid).get();
+	}
+
+	protected ConfigurationPropertiesType getConfigurationProperties() throws AuthenticationException, ObjectNotFoundException {
+		ResourceType resource = getResource();
+
 		ConnectorConfigurationType configuration = resource.getConnectorConfiguration();
 		for (Object object : configuration.getAny()) {
 			if (object instanceof ConfigurationPropertiesType) {

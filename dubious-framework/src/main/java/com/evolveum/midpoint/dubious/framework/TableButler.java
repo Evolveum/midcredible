@@ -1,24 +1,19 @@
 package com.evolveum.midpoint.dubious.framework;
 
-import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-
-import java.util.Map;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class TableButler extends JdbcButler {
 
-	private String resourceOid;
+	private String table;
 
 	public TableButler(String id, Context context, String resourceOid) {
-		super(id, context);
-
-		this.resourceOid = resourceOid;
+		super(id, context, resourceOid);
 	}
 
 	public TableButler(String id, Context context, JdbcTemplate client) {
@@ -27,15 +22,7 @@ public class TableButler extends JdbcButler {
 
 	@Override
 	public JdbcTemplate init() throws Exception {
-		if (resourceOid == null) {
-			throw new IllegalStateException("Resource oid must be defined");
-		}
-
-		Context ctx = getContext();
-		RestJaxbService midpoint = ctx.getMidpoint();
-		ResourceType resource = midpoint.resources().oid(resourceOid).get();
-
-		ConfigurationPropertiesType configuration = getConfigurationProperties(resource);
+		ConfigurationPropertiesType configuration = getConfigurationProperties();
 
 		String driver = getValue(configuration, "jdbcDriver");
 		String url = getValue(configuration, "jdbcUrlTemplate");
@@ -46,11 +33,21 @@ public class TableButler extends JdbcButler {
 		String username = getValue(configuration, "user");
 		String password = getValue(configuration, "password");
 
+		table = getValue(configuration, "table");
+
 		String jdbcUrl = formatUrlTemplate(url, host, port, database);
 		SingleConnectionDataSource ds = new SingleConnectionDataSource(jdbcUrl, username, password, true);
 		ds.setDriverClassName(driver);
 
 		return new JdbcTemplate(ds);
+	}
+
+	public String getTable() {
+		return table;
+	}
+
+	public void setTable(String table) {
+		this.table = table;
 	}
 
 	private String formatUrlTemplate(String url, String host, String port, String database) {
@@ -83,8 +80,19 @@ public class TableButler extends JdbcButler {
 		return count(null, null);
 	}
 
-	private long count(String where, Map<String, Object> params) {
-		// todo implement
-		return 0L;
+	private long count(String where, Object[] params) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("select count(*) from ").append(table);
+
+		if (StringUtils.isNotEmpty(where)) {
+			sb.append(where);
+		}
+
+		JdbcTemplate template = getClient();
+		if (params != null) {
+			return template.queryForObject(sb.toString(), params, Long.class);
+		}
+
+		return template.queryForObject(sb.toString(), Long.class);
 	}
 }

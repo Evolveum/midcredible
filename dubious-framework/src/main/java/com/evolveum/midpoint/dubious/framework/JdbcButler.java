@@ -14,4 +14,8 @@ public abstract class JdbcButler extends ResourceButler<JdbcTemplate> {
 	public JdbcButler(String id, Context context, JdbcTemplate client) {
 		super(id, context, client);
 	}
+
+	public JdbcButler(String id, Context context, String resourceOid) {
+		super(id, context, resourceOid);
+	}
 }
