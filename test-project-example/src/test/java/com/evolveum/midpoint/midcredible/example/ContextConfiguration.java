@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.dubious.example;
+package com.evolveum.midpoint.midcredible.example;
 
 /**
  * Created by Viliam Repan (lazyman).

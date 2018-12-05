@@ -6,12 +6,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>dubious</artifactId>
-        <groupId>com.evolveum.midpoint.dubious</groupId>
+        <artifactId>midcredible</artifactId>
+        <groupId>com.evolveum.midpoint.midcredible</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.dubious</groupId>
+    <groupId>com.evolveum.midpoint.midcredible</groupId>
     <artifactId>test-project-example</artifactId>
 
     <properties>
@@ -22,8 +22,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.evolveum.midpoint.dubious</groupId>
-            <artifactId>dubious-framework</artifactId>
+            <groupId>com.evolveum.midpoint.midcredible</groupId>
+            <artifactId>midcredible-framework</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

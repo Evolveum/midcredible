@@ -1,18 +1,13 @@
-package com.evolveum.midpoint.dubious.example;
+package com.evolveum.midpoint.midcredible.example;
 
-import com.evolveum.midpoint.client.api.ObjectReference;
 import com.evolveum.midpoint.client.api.SearchResult;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
-import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbServiceUtil;
-import com.evolveum.midpoint.dubious.framework.Context;
-import com.evolveum.midpoint.dubious.framework.TableButler;
-import com.evolveum.midpoint.dubious.framework.test.ButlerBaseTest;
+import com.evolveum.midpoint.midcredible.framework.Context;
+import com.evolveum.midpoint.midcredible.framework.TableButler;
+import com.evolveum.midpoint.midcredible.framework.test.ButlerBaseTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
@@ -29,7 +24,7 @@ import java.util.Map;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@ContextConfiguration(classes = com.evolveum.midpoint.dubious.example.ContextConfiguration.class)
+@ContextConfiguration(classes = com.evolveum.midpoint.midcredible.example.ContextConfiguration.class)
 public class ImportUsersTest extends ButlerBaseTest {
 
 	private TableButler tableButler;

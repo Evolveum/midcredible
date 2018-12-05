@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.dubious.framework;
+package com.evolveum.midpoint.midcredible.framework;
 
 import org.apache.commons.csv.CSVFormat;
 

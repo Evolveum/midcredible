@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.dubious.framework;
+package com.evolveum.midpoint.midcredible.framework;
 
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
 

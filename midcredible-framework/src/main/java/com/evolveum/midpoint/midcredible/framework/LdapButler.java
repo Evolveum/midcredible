@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.dubious.framework;
+package com.evolveum.midpoint.midcredible.framework;
 
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
