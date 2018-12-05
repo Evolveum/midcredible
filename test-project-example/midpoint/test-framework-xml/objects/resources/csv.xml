@@ -24,7 +24,7 @@
     <connectorConfiguration>
         <icfc:configurationProperties
                 xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-            <icfccsvfile:filePath>/Users/lazyman/Work/monoted/projects/ek/git/test-framework/midpoint/test-framework-xml/users.csv</icfccsvfile:filePath>
+            <icfccsvfile:filePath>$(csv.path)</icfccsvfile:filePath>
             <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
             <icfccsvfile:fieldDelimiter>;</icfccsvfile:fieldDelimiter>
             <icfccsvfile:multivalueDelimiter>,</icfccsvfile:multivalueDelimiter>

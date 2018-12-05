@@ -9,3 +9,5 @@ target
 
 midpoint/midpoint-*
 midpoint/users.csv
+
+ENV.properties
