@@ -1,22 +1,30 @@
 package com.evolveum.midpoint.dubious.example;
 
+import com.evolveum.midpoint.client.api.ObjectReference;
 import com.evolveum.midpoint.client.api.SearchResult;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
+import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbServiceUtil;
 import com.evolveum.midpoint.dubious.framework.Context;
 import com.evolveum.midpoint.dubious.framework.TableButler;
 import com.evolveum.midpoint.dubious.framework.test.ButlerBaseTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -33,6 +41,13 @@ public class ImportUsersTest extends ButlerBaseTest {
 
 		tableButler = new TableButler("sometable", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
 		tableButler.init();
+		tableButler = new TableButler("asdf", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
+		tableButler.init();
+		tableButler = new TableButler("df", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
+		tableButler.init();
+		tableButler = new TableButler("df", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
+		tableButler.init();
+
 	}
 
 	@Test
@@ -43,10 +58,10 @@ public class ImportUsersTest extends ButlerBaseTest {
 		final String FAMILY_NAME = "Doe";
 		final boolean ACTIVE = true;
 
-//		assertUsersCount(0L);
-//
-//		tableResource.update("insert into users (givenName, familyName, active) values (?,?,?)",
-//				GIVEN_NAME, FAMILY_NAME, ACTIVE);
+		assertUsersCount(0L);
+
+		tableResource.update("insert into users (givenName, familyName, active) values (?,?,?)",
+				GIVEN_NAME, FAMILY_NAME, ACTIVE);
 
 		assertUsersCount(1L);
 		// add user to DB table
@@ -76,11 +91,11 @@ public class ImportUsersTest extends ButlerBaseTest {
 //        System.out.println(result);
 //
 //        RestJaxbServiceUtil util = new RestJaxbServiceUtil(service.getJaxbContext());
-//
+////
 //        UserType user = new UserType();
 //        user.setGivenName(util.createPoly("Jack"));
 //        user.setFamilyName(util.createPoly("Black"));
-//
+////
 //        ObjectReference result = service.users().add(user).post();
 //
 //        // validate MP user
@@ -97,6 +112,7 @@ public class ImportUsersTest extends ButlerBaseTest {
 		tableResource.execute("delete from users");
 
 //        service.users().oid(result.getOid()).delete();
+
 	}
 
 	private void assertUsersCount(long expectedCount) {

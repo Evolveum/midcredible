@@ -20,7 +20,7 @@
         <java.version>1.8</java.version>
 
         <midpoint.rest.version>3.9-SNAPSHOT</midpoint.rest.version>
-        <midpoint.version>3.9-SNAPSHOT</midpoint.version>
+        <midpoint.version>3.9</midpoint.version>
         <testng.version>6.14.3</testng.version>
         <postgresql.version>42.2.5</postgresql.version>
         <mariadb.version>2.3.0</mariadb.version>
