@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectTemplate oid="10000000-0000-0000-0000-000000001232"
+                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+                xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+                xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+    <name>Default User Template</name>
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    import org.apache.commons.lang3.StringUtils
+
+                    String g = basic.stringify(givenName)
+
+                    String result = StringUtils.left(g, 1) + basic.stringify(familyName)
+
+                    return result.toLowerCase()
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+    <mapping>
+        <strength>weak</strength>
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+</objectTemplate>

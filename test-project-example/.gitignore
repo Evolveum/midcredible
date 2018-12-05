@@ -1,0 +1,11 @@
+.classpath
+.project
+.settings
+
+.idea
+*.iml
+
+target
+
+midpoint/midpoint-*
+midpoint/users.csv
