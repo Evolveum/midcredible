@@ -3,6 +3,10 @@ package com.evolveum.midpoint.midcredible.framework;
 import com.evolveum.midpoint.client.api.exception.AuthenticationException;
 import com.evolveum.midpoint.client.api.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
+import com.evolveum.midpoint.midcredible.framework.util.Comparator;
+import com.evolveum.midpoint.midcredible.framework.util.QueryBuilder;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
@@ -13,142 +17,147 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public abstract class ResourceButler<T> {
 
-	private String id;
-	private Context context;
+    private String id;
+    private Context context;
 
-	private String resouceOid;
-	private T client;
+    private String resouceOid;
+    private T client;
 
-	public ResourceButler(String id, Context context) {
-		this(id, context, null, null);
-	}
+    public ResourceButler(String id, Context context) {
+        this(id, context, null, null);
+    }
 
-	public ResourceButler(String id, Context context, String resourceOid) {
-		this(id, context, null, resourceOid);
-	}
+    public ResourceButler(String id, Context context, String resourceOid) {
+        this(id, context, null, resourceOid);
+    }
 
-	public ResourceButler(String id, Context context, T client) {
-		this(id, context, client, null);
-	}
+    public ResourceButler(String id, Context context, T client) {
+        this(id, context, client, null);
+    }
 
-	public ResourceButler(String id, Context context, T client, String resourceOid) {
-		Validate.notNull(id);
-		Validate.notNull(context);
+    public ResourceButler(String id, Context context, T client, String resourceOid) {
+        Validate.notNull(id);
+        Validate.notNull(context);
 
-		this.id = id.replaceAll("[^\\w]", "");
-		this.context = context;
-		this.client = client;
-		this.resouceOid = resourceOid;
+        this.id = id.replaceAll("[^\\w]", "");
+        this.context = context;
+        this.client = client;
+        this.resouceOid = resourceOid;
 
-		context.getButlers().put(this.id, this);
-	}
+        context.getButlers().put(this.id, this);
+    }
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public Context getContext() {
-		return context;
-	}
+    public Context getContext() {
+        return context;
+    }
 
-	public String getResouceOid() {
-		return resouceOid;
-	}
+    public String getResouceOid() {
+        return resouceOid;
+    }
 
-	public T getClient() {
-		if (client != null) {
-			return client;
-		}
+    public T getClient() {
+        if (client != null) {
+            return client;
+        }
 
-		try {
-			client = init();
-		} catch (Exception ex) {
-			throw new IllegalStateException("Couldn't initialize client", ex);
-		}
+        try {
+            client = init();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Couldn't initialize client", ex);
+        }
 
-		return client;
-	}
+        return client;
+    }
 
-	protected T init() throws Exception {
-		throw new NotImplementedException("Subclasses should implement this method");
-	}
+    public abstract Comparator compare();
 
-	protected void destroy() throws Exception {
+    protected abstract void executeComparison(Statistics statistics);
 
-	}
+    protected T init() throws Exception {
+        throw new NotImplementedException("Subclasses should implement this method");
+    }
 
-	protected ResourceType getResource() throws AuthenticationException, ObjectNotFoundException {
-		Context ctx = getContext();
-		RestJaxbService midpoint = ctx.getMidpoint();
-		return midpoint.resources().oid(resouceOid).get();
-	}
+    protected void destroy() throws Exception {
 
-	protected ConfigurationPropertiesType getConfigurationProperties() throws AuthenticationException, ObjectNotFoundException {
-		ResourceType resource = getResource();
+    }
 
-		ConnectorConfigurationType configuration = resource.getConnectorConfiguration();
-		for (Object object : configuration.getAny()) {
-			if (object instanceof ConfigurationPropertiesType) {
-				return (ConfigurationPropertiesType) object;
-			}
+    protected ResourceType getResource() throws AuthenticationException, ObjectNotFoundException {
+        Context ctx = getContext();
+        RestJaxbService midpoint = ctx.getMidpoint();
+        return midpoint.resources().oid(resouceOid).get();
+    }
 
-			if (!(object instanceof JAXBElement)) {
-				continue;
-			}
+    protected ConfigurationPropertiesType getConfigurationProperties() throws AuthenticationException, ObjectNotFoundException {
+        ResourceType resource = getResource();
 
-			JAXBElement jaxb = (JAXBElement) object;
-			if (!(jaxb.getValue() instanceof ConfigurationPropertiesType)) {
-				continue;
-			}
+        ConnectorConfigurationType configuration = resource.getConnectorConfiguration();
+        for (Object object : configuration.getAny()) {
+            if (object instanceof ConfigurationPropertiesType) {
+                return (ConfigurationPropertiesType) object;
+            }
 
-			return (ConfigurationPropertiesType) jaxb.getValue();
-		}
+            if (!(object instanceof JAXBElement)) {
+                continue;
+            }
 
-		return null;
-	}
+            JAXBElement jaxb = (JAXBElement) object;
+            if (!(jaxb.getValue() instanceof ConfigurationPropertiesType)) {
+                continue;
+            }
 
-	protected String getValue(ConfigurationPropertiesType config, String name) {
-		return getValue(config, name, getId() + "." + name);
-	}
+            return (ConfigurationPropertiesType) jaxb.getValue();
+        }
 
-	protected String getValue(ConfigurationPropertiesType config, String name, String propertyName) {
-		return getValue(config, new QName(name), propertyName);
-	}
+        return null;
+    }
 
-	protected String getValue(ConfigurationPropertiesType config, QName name, String propertyName) {
-		Context ctx = getContext();
-		String value = (String) ctx.getProperties().get(propertyName);
-		if (value != null) {
-			return value;
-		}
+    protected String getValue(ConfigurationPropertiesType config, String name) {
+        return getValue(config, name, getId() + "." + name);
+    }
 
-		if (config == null) {
-			return null;
-		}
+    protected String getValue(ConfigurationPropertiesType config, String name, String propertyName) {
+        return getValue(config, new QName(name), propertyName);
+    }
 
-		for (Object obj : config.getAny()) {
-			if (!(obj instanceof Element)) {
-				continue;
-			}
+    protected String getValue(ConfigurationPropertiesType config, QName name, String propertyName) {
+        Context ctx = getContext();
+        String value = (String) ctx.getProperties().get(propertyName);
+        if (value != null) {
+            return value;
+        }
 
-			Element e = (Element) obj;
-			if (!name.getLocalPart().equals(e.getLocalName())) {
-				continue;
-			}
+        if (config == null) {
+            return null;
+        }
 
-			if (StringUtils.isNotEmpty(name.getNamespaceURI()) && !name.getNamespaceURI().equals(e.getNamespaceURI())) {
-				continue;
-			}
+        for (Object obj : config.getAny()) {
+            if (!(obj instanceof Element)) {
+                continue;
+            }
 
-			return e.getTextContent();
-		}
+            Element e = (Element) obj;
+            if (!name.getLocalPart().equals(e.getLocalName())) {
+                continue;
+            }
 
-		return null;
-	}
+            if (StringUtils.isNotEmpty(name.getNamespaceURI()) && !name.getNamespaceURI().equals(e.getNamespaceURI())) {
+                continue;
+            }
+
+            return e.getTextContent();
+        }
+
+        return null;
+    }
 }

@@ -46,7 +46,6 @@
             <artifactId>test-util</artifactId>
             <version>${midpoint.version}</version>
         </dependency>
-
         <!-- SPRING -->
         <dependency>
             <groupId>org.springframework</groupId>
