@@ -242,13 +242,9 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
                 List<Attribute> attrs = new ArrayList<>();
 
                 entry.getAttributes().forEach(attr -> {
-                    Attribute attribute = new Attribute(getId(), getResouceOid(), attr.getId());
+                    Attribute attribute = new Attribute(attr.getId());
                     List<Object> values = new ArrayList<>();
-                    attr.forEach(value -> {
-
-                        values.add(value.getValue());
-
-                    });
+                    attr.forEach(value -> values.add(value.getValue()));
 
                     Map<Diff, Collection<Object>> stateAndValue = new HashMap<>();
                     stateAndValue.put(Diff.NONE, values);
@@ -259,7 +255,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 
                 });
 
-                Identity identity = new Identity(uid, null, getId(), attrs);
+                Identity identity = new Identity(uid, attrs);
                 identities.add(identity);
             }
         });

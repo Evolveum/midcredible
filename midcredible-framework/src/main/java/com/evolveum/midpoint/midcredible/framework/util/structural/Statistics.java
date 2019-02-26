@@ -15,9 +15,7 @@ import java.util.Map;
 public class Statistics {
 
     private final ResourceButler butler;
-    //    private final FilterTree filterTree;
-//    private final String filter;
-//    private final ComparatorImpl comparatorImpl;
+
     private long numberOfRecords;
     private long numberOfInconsistenRecords;
     private Map<Attribute, Map<Diff, Long>> countAttributeChanges;

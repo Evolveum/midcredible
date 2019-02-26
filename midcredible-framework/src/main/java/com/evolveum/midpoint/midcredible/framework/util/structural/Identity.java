@@ -1,28 +1,22 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
+import com.evolveum.midpoint.midcredible.framework.util.State;
+
 import java.util.List;
 
 public class Identity {
 
     private String uid;
-    private String name;
-    private String origin;
-    private Boolean changed;
+    private State change;
     private List<Attribute> attrs;
 
-    public Identity(String uid, String origin) {
-        this(uid, uid, origin, null);
+    public Identity(String uid) {
+        this(uid, null);
     }
 
-    public Identity(String uid, String name, String origin) {
-        this(uid, name, origin, null);
-    }
-
-    public Identity(String uid, String name, String origin, List<Attribute> attrs) {
+    public Identity(String uid, List<Attribute> attrs) {
         this.uid = uid;
-        this.name = name;
         this.attrs = attrs;
-        this.origin = origin;
     }
 
     public List<Attribute> setAttributes(Attribute attr) {
@@ -30,13 +24,13 @@ public class Identity {
         return null;
     }
 
-    public void setHasChanged(Boolean changed) {
-        this.changed = changed;
+    public void setHasChanged(State changed) {
+        this.change = changed;
     }
 
-    public Boolean hasChanged() {
+    public State getChange() {
 
-        return changed;
+        return change;
     }
 
 }
