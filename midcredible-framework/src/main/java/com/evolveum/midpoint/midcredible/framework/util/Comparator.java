@@ -1,13 +1,16 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
-import com.evolveum.midpoint.midcredible.framework.util.structural.Outcome;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Jdbc.Column;
 
+import java.util.List;
 import java.util.Map;
 
 public interface Comparator {
 
     String query();
 
-    Outcome compare(Map<? extends Object, Object> oldRow, Map<? extends Object, Object> newRow);
+    State compareIdentity(Identity oldIdentity, Identity newIdentity);
 
+    Identity compareData(Identity oldIdentity, Identity newIdentity);
 }

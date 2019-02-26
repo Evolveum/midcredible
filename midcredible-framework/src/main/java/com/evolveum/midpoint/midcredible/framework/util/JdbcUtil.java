@@ -1,24 +1,20 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
-import java.util.Map;
-import java.util.Properties;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+
+import javax.sql.DataSource;
 
 public class JdbcUtil {
 
     public JdbcUtil() {
 
     }
+    public DataSource setupDataSource(String url, String username, String password, String driver){
 
-    public String createStatementBody(String typeOfStatement, Map<String, Object> args) {
-        return null;
-    }
+        SingleConnectionDataSource ds = new SingleConnectionDataSource(url, username, password, true);
+        ds.setDriverClassName(driver);
 
-    public String createStatementBody(String typeOfStatement, Properties properties) {
-        return null;
-    }
-
-    public String createStatementBody(String typeOfStatement, Object[][]... arg) {
-        return null;
+        return ds;
     }
 
 }

@@ -52,8 +52,8 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
     }
 
    // @Override
-    public ComparatorImpl compare() {
-
+//    public ComparatorImpl compare() {
+//
 //			SearchScope scope = null;
 //
 //			Map<String, Object> opMap = queryBuilder.getOperationalAttributes();
@@ -80,10 +80,10 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 //			}
 //
 //			return search(filter,scope,attrsToReturn);
-
-        comparatorImpl = new ComparatorImpl(this);
-        return comparatorImpl;
-    }
+//
+//        comparatorImpl = new ComparatorImpl(this);
+//        return comparatorImpl;
+//    }
 
    // @Override
     protected void executeComparison(Statistics statistics) {

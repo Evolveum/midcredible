@@ -6,8 +6,6 @@ import com.evolveum.midpoint.client.api.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
 import com.evolveum.midpoint.midcredible.framework.Context;
 import com.evolveum.midpoint.midcredible.framework.ResourceButler;
-import com.evolveum.midpoint.midcredible.framework.util.QueryBuilder;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
