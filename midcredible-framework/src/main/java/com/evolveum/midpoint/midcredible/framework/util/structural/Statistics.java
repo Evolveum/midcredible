@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
+import com.evolveum.midpoint.midcredible.framework.ResourceButler;
 import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import org.slf4j.Logger;
@@ -13,9 +14,10 @@ import java.util.Map;
 
 public class Statistics {
 
-    private final FilterTree filterTree;
-    private final String filter;
-    private final ComparatorImpl comparatorImpl;
+    private final ResourceButler butler;
+    //    private final FilterTree filterTree;
+//    private final String filter;
+//    private final ComparatorImpl comparatorImpl;
     private long numberOfRecords;
     private long numberOfInconsistenRecords;
     private Map<Attribute, Map<Diff, Long>> countAttributeChanges;
@@ -26,23 +28,22 @@ public class Statistics {
     private static final Logger LOG = LoggerFactory.getLogger(Statistics.class);
 
 
-    public Statistics(FilterTree filterTree, ComparatorImpl comparatorImpl) {
+//    public Statistics(FilterTree filterTree, ComparatorImpl comparatorImpl) {
+//
+//        this.comparatorImpl = comparatorImpl;
+//        this.filterTree = filterTree;
+//        filter = null;
+//    }
+//
+//    public Statistics(ComparatorImpl comparatorImpl, String nativeFilter) {
+//
+//        this.comparatorImpl = comparatorImpl;
+//        filter = nativeFilter;
+//        filterTree = null;
+//    }
 
-        this.comparatorImpl = comparatorImpl;
-        this.filterTree = filterTree;
-        filter = null;
-    }
-
-    public Statistics(ComparatorImpl comparatorImpl, String nativeFilter) {
-
-        this.comparatorImpl = comparatorImpl;
-        filter = nativeFilter;
-        filterTree = null;
-    }
-
-    public Statistics(ComparatorImpl comparatorImpl) {
-
-        this(comparatorImpl, null);
+    public Statistics(ResourceButler butler) {
+        this.butler = butler;
     }
 
     public Statistics toCsv(String path) throws IOException {
@@ -64,7 +65,7 @@ public class Statistics {
         return this;
     }
 
-    public Statistics toLog(String path) throws IOException {
+    public Statistics toLog(){
         isWriteToLog = true;
         return this;
     }
@@ -129,8 +130,9 @@ public class Statistics {
         });
     }
 
-    public void execute() {
+   public ResourceButler confirm(){
 
-    }
+        return butler;
+   }
 
 }

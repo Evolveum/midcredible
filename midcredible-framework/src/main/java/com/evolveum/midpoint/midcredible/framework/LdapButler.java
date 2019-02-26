@@ -51,7 +51,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
         super(id, context, client);
     }
 
-    @Override
+   // @Override
     public ComparatorImpl compare() {
 
 //			SearchScope scope = null;
@@ -85,13 +85,13 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
         return comparatorImpl;
     }
 
-    @Override
+   // @Override
     protected void executeComparison(Statistics statistics) {
         if (comparatorImpl != null) {
 
             LdapSearchResult ldapSearchResult = new LdapSearchResult();
 
-            pagedSearch();
+            //pagedSearch();
 
             try {
                 cleanClient();

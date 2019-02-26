@@ -2,7 +2,6 @@ package com.evolveum.midpoint.midcredible.framework.util;
 
 import com.evolveum.midpoint.midcredible.framework.ResourceButler;
 import com.evolveum.midpoint.midcredible.framework.util.structural.FilterTree;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.List;
@@ -50,22 +49,6 @@ public class QueryBuilder {
     protected Map<String, Object> getOperationalAttributes() {
 
         return this.operationalAttributes;
-    }
-
-    public Statistics statistics() {
-
-        //TODO
-        if (nativeFilter != null) {
-
-            return new Statistics(comparatorImpl, nativeFilter);
-        } else if (filterTree != null) {
-
-            return new Statistics(filterTree, comparatorImpl);
-        } else {
-
-            return new Statistics(comparatorImpl);
-        }
-
     }
 
 }

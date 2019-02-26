@@ -22,21 +22,21 @@ public class Outcome {
         return this.generalState;
     }
 
-    public List<Attribute> getDifferences() {
-
-        if (generalState == State.EQUAL) {
-
-            return null;
-        } else {
-            List<Attribute> differences = new ArrayList<>();
-
-            for (Attribute attribute : attributes) {
-                if (attribute.isChanged()) {
-
-                    differences.add(attribute);
-                }
-            }
-            return differences;
-        }
-    }
+//    public List<Attribute> getDifferences() {
+//
+//        if (generalState == State.EQUAL) {
+//
+//            return null;
+//        } else {
+//            List<Attribute> differences = new ArrayList<>();
+//
+//            for (Attribute attribute : attributes) {
+//                if (attribute.isChanged()) {
+//
+//                    differences.add(attribute);
+//                }
+//            }
+//            return differences;
+//        }
+//    }
 }

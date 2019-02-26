@@ -45,16 +45,4 @@ public class AccountComparisionTest  extends ButlerBaseTest {
 
 
     }
-
-    public void testCompareAccountIdentical(){
-
-
-    }
-
-    public void testCompareAccountsSameAmount(){
-
-
-    }
-
-
 }

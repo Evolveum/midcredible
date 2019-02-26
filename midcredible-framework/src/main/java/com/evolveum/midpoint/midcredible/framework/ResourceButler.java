@@ -3,7 +3,9 @@ package com.evolveum.midpoint.midcredible.framework;
 import com.evolveum.midpoint.client.api.exception.AuthenticationException;
 import com.evolveum.midpoint.client.api.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
+import com.evolveum.midpoint.midcredible.framework.util.Comparator;
 import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Outcome;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -77,9 +79,13 @@ public abstract class ResourceButler<T> {
         return client;
     }
 
-    public abstract ComparatorImpl compare();
+    //public abstract Comparator compare();
 
-    protected abstract void executeComparison(Statistics statistics);
+//    public abstract Comparator compare(ResourceButler oldResource);
+//
+//    protected abstract void executeComparison(Comparator comparator, ResourceButler oldResource);
+//
+//    protected abstract void executeComparison(Comparator comparator);
 
     protected T init() throws Exception {
         throw new NotImplementedException("Subclasses should implement this method");

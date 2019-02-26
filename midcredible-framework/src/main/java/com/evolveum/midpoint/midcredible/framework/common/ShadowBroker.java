@@ -68,22 +68,22 @@ public class ShadowBroker extends Broker {
         this.shadows = result;
     }
 
-    public void compare() {
-
-        if (shadows != null && !(shadows.isEmpty())) {
-
-            shadows.forEach(shadowType -> {
-
-                String name = PolyString.getOrig(shadowType.getName());
-                QueryBuilder builder;
-                butler.compare();
-            });
-
-        } else {
-            LOG.debug("Shadows list contains no values");
-        }
-
-    }
+//    public void compare() {
+//
+//        if (shadows != null && !(shadows.isEmpty())) {
+//
+//            shadows.forEach(shadowType -> {
+//
+//                String name = PolyString.getOrig(shadowType.getName());
+//                QueryBuilder builder;
+//                butler.compare();
+//            });
+//
+//        } else {
+//            LOG.debug("Shadows list contains no values");
+//        }
+//
+//    }
 
 
 }

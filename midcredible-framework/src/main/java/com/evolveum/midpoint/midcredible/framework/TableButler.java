@@ -1,15 +1,17 @@
 package com.evolveum.midpoint.midcredible.framework;
 
 import com.evolveum.midpoint.midcredible.framework.util.Comparator;
-import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
 import com.evolveum.midpoint.midcredible.framework.util.State;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Jdbc.Column;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Outcome;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
 import groovy.lang.GroovyClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -19,7 +21,6 @@ import javax.script.ScriptException;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,28 +31,48 @@ import java.util.Map;
  */
 public class TableButler extends JdbcButler {
 
-	private final String comparator;
+	private static final Logger LOG = LoggerFactory.getLogger(TableButler.class);
+	private final String comparatorPath;
 	private String table;
+	private Statistics statistics;
 
-	public TableButler(String id, Context context, String resourceOid, String comparator) {
+	public TableButler(String id, Context context, String resourceOid, String comparatorPath) {
 		super(id, context, resourceOid);
-		this.comparator = comparator;
+		this.comparatorPath = comparatorPath;
 	}
 
 	public TableButler(String id, Context context, String resourceOid) {
 		super(id, context, resourceOid);
-		comparator = null;
+		comparatorPath = null;
 	}
 
 	public TableButler(String id, Context context, JdbcTemplate client) {
 		super(id, context, client);
-		comparator = null;
+		comparatorPath = null;
 	}
 
-	@Override
-	public ComparatorImpl compare() {
-		return null;
-	}
+//	public Comparator compare(ResourceButler resourceButler) {
+//
+//
+//
+//		try {
+//			executeComparison(setupComparator(comparatorPath)) ;
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		} catch (ScriptException e) {
+//			e.printStackTrace();
+//		} catch (IllegalAccessException e) {
+//			e.printStackTrace();
+//		} catch (InstantiationException e) {
+//			e.printStackTrace();
+//		}
+//		finally {
+//
+//			//TODO clean up
+//
+//		}
+//		return null;
+//	}
 
 	@Override
 	public JdbcTemplate init() throws Exception {
@@ -129,47 +150,55 @@ public class TableButler extends JdbcButler {
 		return template.queryForObject(sb.toString(), Long.class);
 	}
 
-	@Override
-	protected void executeComparison(Statistics statistics) {
-
-		Comparator comparator = setupComparator(comparatorPath);
-
-		ResultSet oldRs = createResultSet(comparator.query(), oldDS);
-		ResultSet newRs = createResultSet(comparator.query(), newDS);
-
-		while (oldRs.next()) {
-			oldRow = createMapFromRow(oldRs);
-
-			if (!newRs.next()) {
-				// there's nothing left in new table, old table contains more rows than it should, mark old rows as "-"
-				printCsvRow(printer, "-", oldRs);
-				break;
-			}
-
-			newRow = createMapFromRow(newRs);
-			State state = comparator.compare(oldRow, newRow);
-			switch (state) {
-				case EQUAL:
-					continue;
-				case OLD_BEFORE_NEW:
-					// new table contains row that shouldn't be there, mark new as "+"
-					printCsvRow(printer, "+", newRs);
-					break;
-				case OLD_AFTER_NEW:
-					// new table misses some rows obviously, therefore old row should be marked as "-"
-					printCsvRow(printer, "-", oldRs);
-					break;
-			}
-		}
-
-		while (newRs.next()) {
-			newRow = createMapFromRow(newRs);
-			// these remaining records are not in old result set, mark new rows as "+"
-			// todo print it out somehow
-			printCsvRow(printer, "+", newRs);
-		}
-
-	}
+//	protected void executeComparison(Comparator comparator, ResourceButler analyzedResource) {
+//
+//		ResultSet oldRs = null;
+//		ResultSet newRs = null;
+//		try {
+//			oldRs = createResultSet(comparator.query(), this.getClient().getDataSource());
+//			newRs = createResultSet(comparator.query(), (JdbcButler) analyzedResource.getClient().getDataSource());
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//
+//try {
+//	while (oldRs.next()) {
+//		oldRow = createMapFromRow(oldRs);
+//
+//		if (!newRs.next()) {
+//			// there's nothing left in new table, old table contains more rows than it should, mark old rows as "-"
+//			printCsvRow(printer, "-", oldRs);
+//			break;
+//		}
+//
+//		newRow = createMapFromRow(newRs);
+//		State state = comparator.compare(oldRow, newRow);
+//		switch (state) {
+//			case EQUAL:
+//				continue;
+//			case OLD_BEFORE_NEW:
+//				// new table contains row that shouldn't be there, mark new as "+"
+//				printCsvRow(printer, "+", newRs);
+//				break;
+//			case OLD_AFTER_NEW:
+//				// new table misses some rows obviously, therefore old row should be marked as "-"
+//				printCsvRow(printer, "-", oldRs);
+//				break;
+//		}
+//	}
+//
+//	while (newRs.next()) {
+//		newRow = createMapFromRow(newRs);
+//		// these remaining records are not in old result set, mark new rows as "+"
+//		// todo print it out somehow
+//		printCsvRow(printer, "+", newRs);
+//	}
+//} catch (SQLException e){
+//	// TODO
+//	LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
+//}
+//
+//	}
 
 	private Map<Column, Object> createMapFromRow(ResultSet rs) throws SQLException {
 		ResultSetMetaData md = rs.getMetaData();
@@ -204,7 +233,7 @@ public class TableButler extends JdbcButler {
 		}
 
 		if (type == null) {
-			throw new IllegalStateException("Couldn't find comparator class that is assignable from Comparator "
+			throw new IllegalStateException("Couldn't find comparatorPath class that is assignable from Comparator "
 					+ ", available classes: " + Arrays.toString(gcl.getLoadedClasses()));
 		}
 
@@ -216,5 +245,10 @@ public class TableButler extends JdbcButler {
 
 		PreparedStatement pstmt = con.prepareStatement(query);
 		return pstmt.executeQuery();
+	}
+
+	public Statistics statistics(){
+
+		return new Statistics(this);
 	}
 }

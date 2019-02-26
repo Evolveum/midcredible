@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework;
 
+import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**

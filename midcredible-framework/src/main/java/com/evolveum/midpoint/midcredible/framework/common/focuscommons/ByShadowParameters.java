@@ -4,11 +4,9 @@ import com.evolveum.midpoint.midcredible.framework.Context;
 import com.evolveum.midpoint.midcredible.framework.ResourceButler;
 import com.evolveum.midpoint.midcredible.framework.common.By;
 import com.evolveum.midpoint.midcredible.framework.common.ShadowBroker;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 
 public class ByShadowParameters<T> extends By<T> {
 

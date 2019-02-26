@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.common.focuscommons;
 
+import com.evolveum.midpoint.midcredible.framework.Context;
 import com.evolveum.midpoint.midcredible.framework.ResourceButler;
 import com.evolveum.midpoint.midcredible.framework.common.By;
 
@@ -8,9 +9,9 @@ public class ByFocusParameters<T> extends By<T> {
         super(parent);
     }
 
-    public ByShadowParameters projection(ResourceButler targetResourceButler) {
+    public ByShadowParameters projection(ResourceButler targetResourceButler, Context ctx) {
 
-        return new ByShadowParameters(this, targetResourceButler);
+        return new ByShadowParameters(this, targetResourceButler, ctx);
     }
 
 }

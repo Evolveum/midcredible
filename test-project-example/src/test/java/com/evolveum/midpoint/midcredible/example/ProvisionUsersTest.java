@@ -5,7 +5,6 @@ import com.evolveum.midpoint.client.api.exception.AuthenticationException;
 import com.evolveum.midpoint.client.api.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
 import com.evolveum.midpoint.midcredible.framework.Context;
-import com.evolveum.midpoint.midcredible.framework.ResourceButler;
 import com.evolveum.midpoint.midcredible.framework.TableButler;
 import com.evolveum.midpoint.midcredible.framework.test.ButlerBaseTest;
 import org.springframework.test.context.ContextConfiguration;
