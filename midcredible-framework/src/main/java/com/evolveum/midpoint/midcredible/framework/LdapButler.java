@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework;
 
-import com.evolveum.midpoint.midcredible.framework.util.Comparator;
+import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import com.evolveum.midpoint.midcredible.framework.util.QueryBuilder;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
@@ -9,7 +9,6 @@ import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.directory.api.ldap.codec.controls.search.pagedSearch.PagedResultsDecorator;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.function.BiConsumer;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -43,7 +41,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
     private String uidAttr;
     private static final String DEFAULT_UID_NAME = "dn";
     private static final String DEFAULT_OBJECT_CLASS_ALL = "(objectclass=*)";
-    private Comparator comparator;
+    private ComparatorImpl comparatorImpl;
 
     public LdapButler(String id, Context context, String resourceOid) {
         super(id, context, resourceOid);
@@ -54,7 +52,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
     }
 
     @Override
-    public Comparator compare() {
+    public ComparatorImpl compare() {
 
 //			SearchScope scope = null;
 //
@@ -83,13 +81,13 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 //
 //			return search(filter,scope,attrsToReturn);
 
-        comparator = new Comparator(this);
-        return comparator;
+        comparatorImpl = new ComparatorImpl(this);
+        return comparatorImpl;
     }
 
     @Override
     protected void executeComparison(Statistics statistics) {
-        if (comparator != null) {
+        if (comparatorImpl != null) {
 
             LdapSearchResult ldapSearchResult = new LdapSearchResult();
 

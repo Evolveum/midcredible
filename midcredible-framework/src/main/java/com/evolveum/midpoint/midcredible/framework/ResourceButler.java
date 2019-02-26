@@ -3,9 +3,7 @@ package com.evolveum.midpoint.midcredible.framework;
 import com.evolveum.midpoint.client.api.exception.AuthenticationException;
 import com.evolveum.midpoint.client.api.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.client.impl.restjaxb.RestJaxbService;
-import com.evolveum.midpoint.midcredible.framework.util.Comparator;
-import com.evolveum.midpoint.midcredible.framework.util.QueryBuilder;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
+import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -17,7 +15,6 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -80,7 +77,7 @@ public abstract class ResourceButler<T> {
         return client;
     }
 
-    public abstract Comparator compare();
+    public abstract ComparatorImpl compare();
 
     protected abstract void executeComparison(Statistics statistics);
 

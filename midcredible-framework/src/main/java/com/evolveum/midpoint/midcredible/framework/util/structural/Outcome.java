@@ -5,12 +5,12 @@ import com.evolveum.midpoint.midcredible.framework.util.State;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResultSet {
+public class Outcome {
 
     private State generalState;
     private List<Attribute> attributes;
 
-    public ResultSet(State state, List<Attribute> attributes) {
+    public Outcome(State state, List<Attribute> attributes) {
 
         this.generalState = state;
         this.attributes = attributes;

@@ -52,7 +52,7 @@ public class AccountComparisionTest  extends ButlerBaseTest {
     }
 
     public void testCompareAccountsSameAmount(){
-        
+
 
     }
 

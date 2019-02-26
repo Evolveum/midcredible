@@ -11,28 +11,28 @@ import java.util.Map;
 public class QueryBuilder {
 
 
-    private final Comparator comparator;
+    private final ComparatorImpl comparatorImpl;
     private final FilterTree filterTree;
     private final String nativeFilter;
     private String query;
     private Map<String, Object> operationalAttributes;
 
-    public QueryBuilder(Comparator comparator) {
+    public QueryBuilder(ComparatorImpl comparatorImpl) {
 
-        this(null, comparator);
+        this(null, comparatorImpl);
 
     }
 
-    public QueryBuilder(Comparator comparator, String nativeFilter) {
+    public QueryBuilder(ComparatorImpl comparatorImpl, String nativeFilter) {
 
         this.filterTree = null;
-        this.comparator = comparator;
+        this.comparatorImpl = comparatorImpl;
         this.nativeFilter = nativeFilter;
     }
 
-    public QueryBuilder(FilterTree filterTree, Comparator comparator) {
+    public QueryBuilder(FilterTree filterTree, ComparatorImpl comparatorImpl) {
         this.filterTree = filterTree;
-        this.comparator = comparator;
+        this.comparatorImpl = comparatorImpl;
         this.nativeFilter = null;
     }
 
@@ -57,13 +57,13 @@ public class QueryBuilder {
         //TODO
         if (nativeFilter != null) {
 
-            return new Statistics(comparator, nativeFilter);
+            return new Statistics(comparatorImpl, nativeFilter);
         } else if (filterTree != null) {
 
-            return new Statistics(filterTree, comparator);
+            return new Statistics(filterTree, comparatorImpl);
         } else {
 
-            return new Statistics(comparator);
+            return new Statistics(comparatorImpl);
         }
 
     }

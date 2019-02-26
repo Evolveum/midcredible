@@ -1,59 +1,61 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
-import com.evolveum.midpoint.midcredible.framework.util.Comparator;
+import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 
 public class Statistics {
 
     private final FilterTree filterTree;
     private final String filter;
-    private final Comparator comparator;
+    private final ComparatorImpl comparatorImpl;
     private long numberOfRecords;
     private long numberOfInconsistenRecords;
     private Map<Attribute, Map<Diff, Long>> countAttributeChanges;
-    private File statDump;
+    private File objectStatDump;
     private Boolean isWriteToFile = false;
     private Boolean isWriteToLog = false;
 
     private static final Logger LOG = LoggerFactory.getLogger(Statistics.class);
 
 
-    public Statistics(FilterTree filterTree, Comparator comparator) {
+    public Statistics(FilterTree filterTree, ComparatorImpl comparatorImpl) {
 
-        this.comparator = comparator;
+        this.comparatorImpl = comparatorImpl;
         this.filterTree = filterTree;
         filter = null;
     }
 
-    public Statistics(Comparator comparator, String nativeFilter) {
+    public Statistics(ComparatorImpl comparatorImpl, String nativeFilter) {
 
-        this.comparator = comparator;
+        this.comparatorImpl = comparatorImpl;
         filter = nativeFilter;
         filterTree = null;
     }
 
-    public Statistics(Comparator comparator) {
+    public Statistics(ComparatorImpl comparatorImpl) {
 
-        this(comparator, null);
+        this(comparatorImpl, null);
     }
 
     public Statistics toCsv(String path) throws IOException {
-        statDump = new File(path);
-        if (!statDump.exists()) {
+        objectStatDump = new File(path);
+        if (!objectStatDump.exists()) {
             try {
-                statDump.createNewFile();
+                objectStatDump.createNewFile();
             } catch (IOException e) {
                 LOG.error("Exception while creating a new file: " + e.getLocalizedMessage());
                 throw e;
             }
         } else {
-            if (!statDump.canWrite()) {
+            if (!objectStatDump.canWrite()) {
                 LOG.error("Can not write into the file specified");
                 throw new IllegalArgumentException("Can not write into the file specified");
             }
@@ -90,10 +92,10 @@ public class Statistics {
 //        return stats.toString();
 //    }
 
-    protected void write(ResultSet resultSet) {
+    protected void write(Outcome outcome) {
 
         if (isWriteToFile) {
-            writeToFile(resultSet);
+            writeToFile(outcome);
         }
 
         if (isWriteToLog) {
@@ -102,11 +104,19 @@ public class Statistics {
 
     }
 
-    private void writeToFile(ResultSet resultSet) {
+    private void writeToFile(Outcome outcome) {
+
+
+        try (PrintWriter writer = new PrintWriter(objectStatDump)){
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
-    private void isWriteToLog(ResultSet resultSet) {
+    private void isWriteToLog(Outcome outcome) {
 
     }
 
