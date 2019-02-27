@@ -99,12 +99,11 @@ try {
 		State state = comparator.compareIdentity(oldRow, newRow);
 		switch (state) {
 			case EQUAL:
-			    
 			    if(!compareAttributes){
 				continue;
             }else{
 			 Identity difference = comparator.compareData(oldRow, newRow);
-			 reportPrinter.printCsvRow(attributeList,difference);
+                    reportPrinter.printCsvRow(attributeList,difference);
             }
 			case OLD_BEFORE_NEW:
 				// new table contains row that shouldn't be there, mark new as "+"

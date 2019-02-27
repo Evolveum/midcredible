@@ -46,6 +46,4 @@ public class Attribute {
     public void setValues(Map<Diff, Collection<Object>> values) {
         this.values = values;
     }
-
-
 }

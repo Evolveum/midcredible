@@ -38,4 +38,8 @@ public class Identity {
         return change;
     }
 
+    public String getUid() {
+        return uid;
+    }
+
 }

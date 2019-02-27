@@ -2,7 +2,10 @@ package com.evolveum.midpoint.midcredible.example;
 import com.evolveum.midpoint.midcredible.framework.LdapButler;
 import com.evolveum.midpoint.midcredible.framework.TableButler;
 import com.evolveum.midpoint.midcredible.framework.test.ButlerBaseTest;
+import com.evolveum.midpoint.midcredible.framework.util.JdbcUtil;
 import org.springframework.test.context.ContextConfiguration;
+
+import javax.sql.DataSource;
 
 @ContextConfiguration(classes = com.evolveum.midpoint.midcredible.example.ContextConfiguration.class)
 public class ObjectComparisionTest extends ButlerBaseTest {
@@ -19,12 +22,15 @@ public class ObjectComparisionTest extends ButlerBaseTest {
     @Override
     public void beforeClass() throws Exception {
         super.beforeClass();
-        targetResource = new LdapButler("foo", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6");
-        comparisonSource = new LdapButler("bar", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6");
+//        targetResource = new LdapButler("foo", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6");
+//        comparisonSource = new LdapButler("bar", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6");
+//
+//        targetResourceTable = new TableButler("foo", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6",COMPARATOR);
+//        comparisonSourceTable = new TableButler("bar", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6");
 
-        targetResourceTable = new TableButler("foo", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6",COMPARATOR);
-        comparisonSourceTable = new TableButler("bar", getContext(), "04afeda6-394b-11e6-8cbe-abf7ff43abc6");
 
+        JdbcUtil util = new JdbcUtil();
+       // DataSource dataSource = util.setupDataSource()
     }
 
 //      public void testCompareAllResourceLdap() throws Exception {

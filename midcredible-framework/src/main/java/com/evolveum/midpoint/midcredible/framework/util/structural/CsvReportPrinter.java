@@ -70,7 +70,8 @@ public class CsvReportPrinter {
     }
 
     private void printCsvRow(CSVPrinter printer, List <String> attrNames, Identity identity) throws IOException {
-        if (identity.getChange() == null || identity.getChange() == State.EQUAL) {
+
+        if (identity.getChange() == null && identity.getChange() == State.EQUAL) {
             return;
         }
         String[] row = new String[attrNames.size() + 1];
@@ -84,6 +85,10 @@ public class CsvReportPrinter {
             attr.getValues().forEach((diff, objects) -> {
                 int count=1;
                 objects.forEach(object->{
+
+                    if(identity.getChange() == State.MODIFIED){
+                        valueString.append(diff.getCharacter());
+                    }
 
                     valueString.append( object != null ? object.toString() : "[null]");
 
