@@ -20,9 +20,9 @@ public class Identity {
         this.attrs = attrs;
     }
 
-    public List<Attribute> setAttributes(Attribute attr) {
+    public void setAttrs(Map<String, Attribute> attrs) {
 
-        return null;
+        this.attrs = attrs;
     }
 
     public Map<String, Attribute> getAttrs() {
@@ -38,7 +38,7 @@ public class Identity {
         return change;
     }
 
-    public String getUid() {
+    public String getId() {
         return uid;
     }
 

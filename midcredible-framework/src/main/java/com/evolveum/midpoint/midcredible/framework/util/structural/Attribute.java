@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

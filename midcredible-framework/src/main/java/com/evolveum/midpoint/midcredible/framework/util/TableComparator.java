@@ -26,49 +26,48 @@ public class TableComparator {
     private final String comparatorPath;
     private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
 
-    public TableComparator(TableButler newResource, DataSource OldResource, String comparatorPath){
-    this(newResource.getClient().getDataSource(),OldResource, comparatorPath);
+    public TableComparator(TableButler newResource, DataSource OldResource, String comparatorPath) {
+        this(newResource.getClient().getDataSource(), OldResource, comparatorPath);
     }
 
-    public TableComparator(DataSource newResource, DataSource oldResource, String comparatorPath){
+    public TableComparator(DataSource newResource, DataSource oldResource, String comparatorPath) {
         this.newResource = newResource;
         this.oldResource = oldResource;
         this.comparatorPath = comparatorPath;
     }
 
 
-    	public void compare(String outputFilePath, String identificator, Boolean compareAttributes) {
-		try {
-			executeComparison(setupComparator(), outputFilePath, identificator, compareAttributes) ;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ScriptException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		}
-		finally {
+    public void compare(String outputFilePath, String identificator, Boolean compareAttributes) {
+        try {
+            executeComparison(setupComparator(), outputFilePath, identificator, compareAttributes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ScriptException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } finally {
 
-			//TODO clean up
+            //TODO clean up
 
-		}
-	}
+        }
+    }
 
-    	protected void executeComparison(Comparator comparator, String outputFilePath, String identificator, Boolean compareAttributes) {
+    protected void executeComparison(Comparator comparator, String outputFilePath, String identificator, Boolean compareAttributes) {
 
         //TODO path from property file
         CsvReportPrinter reportPrinter = new CsvReportPrinter(outputFilePath);
 
-		ResultSet oldRs = null;
-		ResultSet newRs = null;
-		ResultSetMetaData md =null;
-		List attributeList=null;
+        ResultSet oldRs = null;
+        ResultSet newRs = null;
+        ResultSetMetaData md = null;
+        List attributeList = null;
 
-		try {
-			oldRs = createResultSet(comparator.query(), oldResource);
-			newRs = createResultSet(comparator.query(), newResource);
+        try {
+            oldRs = createResultSet(comparator.query(), oldResource);
+            newRs = createResultSet(comparator.query(), newResource);
             md = oldRs.getMetaData();
 
             int columns = md.getColumnCount();
@@ -82,65 +81,68 @@ public class TableComparator {
             e.printStackTrace();
         }
 
-            Identity oldRow;
-            Identity newRow;
+        Identity oldRow;
+        Identity newRow;
 
-try {
-	while (oldRs.next()) {
-		oldRow = createIdentityFromRow(oldRs, identificator);
+        try {
+            while (oldRs.next()) {
+                oldRow = createIdentityFromRow(oldRs, identificator);
 
-		if (!newRs.next()) {
-			// there's nothing left in new table, old table contains more rows than it should, mark old rows as "-"
+                if (!newRs.next()) {
+                    // there's nothing left in new table, old table contains more rows than it should, mark old rows as "-"
 //			printCsvRow(printer, "-", oldRs);
-			break;
-		}
+                    break;
+                }
 
-		newRow = createIdentityFromRow(newRs, identificator);
-		State state = comparator.compareIdentity(oldRow, newRow);
-		switch (state) {
-			case EQUAL:
-			    if(!compareAttributes){
-				continue;
-            }else{
-			 Identity difference = comparator.compareData(oldRow, newRow);
-                    reportPrinter.printCsvRow(attributeList,difference);
+                newRow = createIdentityFromRow(newRs, identificator);
+                State state = comparator.compareIdentity(oldRow, newRow);
+                switch (state) {
+                    case EQUAL:
+                        if (!compareAttributes) {
+                            continue;
+                        } else {
+                            Identity difference = comparator.compareData(oldRow, newRow);
+                            reportPrinter.printCsvRow(attributeList, difference);
+                        }
+                    case OLD_BEFORE_NEW:
+                        // new table contains row that shouldn't be there, mark new as "+"
+                        reportPrinter.printCsvRow(attributeList, newRow);
+                        //printCsvRow(printer, "+", newRs);
+                        break;
+                    case OLD_AFTER_NEW:
+                        reportPrinter.printCsvRow(attributeList, oldRow);
+                        // new table misses some rows obviously, therefore old row should be marked as "-"
+                        //printCsvRow(printer, "-", oldRs);
+                        break;
+                }
             }
-			case OLD_BEFORE_NEW:
-				// new table contains row that shouldn't be there, mark new as "+"
-                reportPrinter.printCsvRow(attributeList,newRow);
-				//printCsvRow(printer, "+", newRs);
-				break;
-			case OLD_AFTER_NEW:
-                reportPrinter.printCsvRow(attributeList,oldRow);
-				// new table misses some rows obviously, therefore old row should be marked as "-"
-				//printCsvRow(printer, "-", oldRs);
-				break;
-		}
-	}
 
-	while (newRs.next()) {
-        newRow = createIdentityFromRow(newRs, identificator);
-        newRow.setChanged(State.OLD_BEFORE_NEW);
-        reportPrinter.printCsvRow(attributeList, newRow);
-	}
-} catch (SQLException e){
-	// TODO
-	LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
-} catch (IOException e) {
-    e.printStackTrace();
-}
+            while (newRs.next()) {
+                newRow = createIdentityFromRow(newRs, identificator);
+                newRow.setChanged(State.OLD_BEFORE_NEW);
+                reportPrinter.printCsvRow(attributeList, newRow);
+            }
+        } catch (SQLException e) {
+            // TODO
+            LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
     private Identity createIdentityFromRow(ResultSet rs, String identifier) throws SQLException {
-        Identity identity = new Identity(rs.getObject(identifier).toString());
+        Identity identity = new Identity(rs.getObject(identifier).toString(), new HashMap<>());
         ResultSetMetaData md = rs.getMetaData();
         int columns = md.getColumnCount();
 
         for (int i = 0; i < columns; i++) {
-            Attribute attr = new Attribute(md.getColumnName(i));
+            String colName = md.getColumnName(i);
+            Attribute attr = new Attribute(colName);
             Map<Diff, Collection> valueMap = new HashMap();
             attr.setInitialSingleValue(rs.getObject(i));
-            identity.setAttributes(attr);
+            Map map = identity.getAttrs();
+            map.put(colName, attr);
+            identity.setAttrs(map);
         }
 
         return identity;

@@ -10,7 +10,7 @@ public enum Diff {
     // REMOVE - This means that the values of a specific attribute have been modified, it represents the removal of a specific value.
     // This will be represented with a minus character in brackets e.g. "(-)"
     REMOVE("(-)"),
-    //NONE
+    //NONE - This means initial state
     NONE("(!)");
 
     private String character;
