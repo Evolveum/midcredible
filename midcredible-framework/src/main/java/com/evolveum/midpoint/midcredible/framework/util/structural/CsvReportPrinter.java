@@ -3,29 +3,37 @@ package com.evolveum.midpoint.midcredible.framework.util.structural;
 import com.evolveum.midpoint.midcredible.framework.util.State;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class CsvReportPrinter {
 
     private static final char DEFAULT_MV_SEPARATOR = ';';
+    private static final Logger LOG = LoggerFactory.getLogger(CsvReportPrinter.class);
+    private Boolean isFirst =true;
+    private CSVPrinter printer;
 
-    public CsvReportPrinter(){}
+    public CsvReportPrinter(String path){
+        try {
+            printer= setupCsvPrinter(path);
+        } catch (IOException e) {
+            LOG.error("Exception while creating a new file: " + e.getLocalizedMessage());
+            //TODO handle
+        }
+    }
 
 
-    public CSVPrinter setupCsvPrinter(String path) throws IOException {
-        Writer writer;
+    public CSVPrinter setupCsvPrinter(String path) throws IOException{
+        Writer writer = null;
         if (path != null && !path.isEmpty()) {
+
             File file = new File(path);
             writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+
         } else {
             writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
         }
@@ -39,7 +47,7 @@ public class CsvReportPrinter {
         return CSVFormat.DEFAULT;
     }
 
-    private void printCsvHeader(CSVPrinter printer, List <String> columnNames) throws SQLException, IOException {
+    private void printCsvHeader(CSVPrinter printer, List <String> columnNames) throws IOException {
         columnNames.sort(String::compareTo);
         int columns= columnNames.size();
         String[] header = new String[columns + 1];
@@ -53,7 +61,15 @@ public class CsvReportPrinter {
         printer.printRecord(header);
     }
 
-    public void printCsvRow(CSVPrinter printer, List <String> attrNames, Identity identity) throws IOException {
+    public void printCsvRow(List <String> attrNames, Identity identity) throws IOException {
+        if (isFirst){
+        printCsvHeader(printer, attrNames);
+        isFirst=false;
+        }
+        printCsvRow(printer, attrNames, identity);
+    }
+
+    private void printCsvRow(CSVPrinter printer, List <String> attrNames, Identity identity) throws IOException {
         if (identity.getChange() == null || identity.getChange() == State.EQUAL) {
             return;
         }
@@ -71,7 +87,7 @@ public class CsvReportPrinter {
 
                     valueString.append( object != null ? object.toString() : "[null]");
 
-                if(count<objects.size()){
+                if(count < objects.size()){
                         valueString.append(DEFAULT_MV_SEPARATOR);
                     }
                 });
