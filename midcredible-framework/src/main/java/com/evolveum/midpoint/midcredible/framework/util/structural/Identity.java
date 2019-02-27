@@ -29,7 +29,7 @@ public class Identity {
         return attrs;
     }
 
-    public void setHasChanged(State changed) {
+    public void setChanged(State changed) {
         this.change = changed;
     }
 

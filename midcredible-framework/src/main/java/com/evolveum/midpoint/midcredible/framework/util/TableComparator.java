@@ -4,7 +4,6 @@ import com.evolveum.midpoint.midcredible.framework.TableButler;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
 import com.evolveum.midpoint.midcredible.framework.util.structural.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Jdbc.Column;
 import groovy.lang.GroovyClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
@@ -38,9 +37,9 @@ public class TableComparator {
     }
 
 
-    	public void compare(String outputFilePath, String identificator) {
+    	public void compare(String outputFilePath, String identificator, Boolean compareAttributes) {
 		try {
-			executeComparison(setupComparator(), outputFilePath, identificator) ;
+			executeComparison(setupComparator(), outputFilePath, identificator, compareAttributes) ;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ScriptException e) {
@@ -57,7 +56,7 @@ public class TableComparator {
 		}
 	}
 
-    	protected void executeComparison(Comparator comparator, String outputFilePath, String identificator) {
+    	protected void executeComparison(Comparator comparator, String outputFilePath, String identificator, Boolean compareAttributes) {
 
         //TODO path from property file
         CsvReportPrinter reportPrinter = new CsvReportPrinter(outputFilePath);
@@ -100,7 +99,13 @@ try {
 		State state = comparator.compareIdentity(oldRow, newRow);
 		switch (state) {
 			case EQUAL:
+			    
+			    if(!compareAttributes){
 				continue;
+            }else{
+			 Identity difference = comparator.compareData(oldRow, newRow);
+			 reportPrinter.printCsvRow(attributeList,difference);
+            }
 			case OLD_BEFORE_NEW:
 				// new table contains row that shouldn't be there, mark new as "+"
                 reportPrinter.printCsvRow(attributeList,newRow);
@@ -115,10 +120,9 @@ try {
 	}
 
 	while (newRs.next()) {
-		//newRow = createMapFromRow(newRs);
-		// these remaining records are not in old result set, mark new rows as "+"
-		// todo print it out somehow
-		//printCsvRow(printer, "+", newRs);
+        newRow = createIdentityFromRow(newRs, identificator);
+        newRow.setChanged(State.OLD_BEFORE_NEW);
+        reportPrinter.printCsvRow(attributeList, newRow);
 	}
 } catch (SQLException e){
 	// TODO
