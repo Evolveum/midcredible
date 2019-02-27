@@ -1,12 +1,13 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
-import com.evolveum.midpoint.midcredible.framework.JdbcButler;
-import com.evolveum.midpoint.midcredible.framework.ResourceButler;
 import com.evolveum.midpoint.midcredible.framework.TableButler;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Jdbc.Column;
 import groovy.lang.GroovyClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -19,19 +20,20 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TableCompare {
+public class TableComparator {
 
     private final DataSource newResource;
     private final DataSource oldResource;
     private final String comparatorPath;
+    private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
 
-    public TableCompare(TableButler newResource, DataSource OldResource, String comparatorPath){
+    public TableComparator(TableButler newResource, DataSource OldResource, String comparatorPath){
     this(newResource.getClient().getDataSource(),OldResource, comparatorPath);
     }
 
-    public TableCompare(DataSource newResource, DataSource oldResource, String comparatorPath){
+    public TableComparator(DataSource newResource, DataSource oldResource, String comparatorPath){
         this.newResource = newResource;
-        this. oldResource = oldResource;
+        this.oldResource = oldResource;
         this.comparatorPath = comparatorPath;
     }
 
@@ -68,8 +70,8 @@ public class TableCompare {
 //			e.printStackTrace();
 //		}
 //
-//            Map<Column, Object> oldRow;
-//            Map<Column, Object> newRow;
+//            Identity oldRow;
+//            Identity newRow;
 //
 //try {
 //	while (oldRs.next()) {
@@ -82,7 +84,7 @@ public class TableCompare {
 //		}
 //
 //		newRow = createMapFromRow(newRs);
-//		State state = comparator.compare(oldRow, newRow);
+//		State state = comparator.compareIdentity(oldRow, newRow);
 //		switch (state) {
 //			case EQUAL:
 //				continue;

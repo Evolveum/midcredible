@@ -3,18 +3,19 @@ package com.evolveum.midpoint.midcredible.framework.util.structural;
 import com.evolveum.midpoint.midcredible.framework.util.State;
 
 import java.util.List;
+import java.util.Map;
 
 public class Identity {
 
     private String uid;
     private State change;
-    private List<Attribute> attrs;
+    private Map<String, Attribute> attrs;
 
     public Identity(String uid) {
         this(uid, null);
     }
 
-    public Identity(String uid, List<Attribute> attrs) {
+    public Identity(String uid, Map<String, Attribute> attrs) {
         this.uid = uid;
         this.attrs = attrs;
     }
@@ -22,6 +23,10 @@ public class Identity {
     public List<Attribute> setAttributes(Attribute attr) {
 
         return null;
+    }
+
+    public Map<String, Attribute> getAttrs() {
+        return attrs;
     }
 
     public void setHasChanged(State changed) {

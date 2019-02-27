@@ -189,149 +189,149 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 //	return search(filter,scope,attrsToReturn);
 //	}
 
-    private List<Identity> search(String filter, SearchScope scope, String... attrsToReturn) throws LdapException, CursorException {
-        LOG.debug("Formulating search query using the following scope: " + scope.toString() + " filter: "
-                + System.lineSeparator() + filter + System.lineSeparator() + " to return the following attributes: " + attrsToReturn);
+//    private List<Identity> search(String filter, SearchScope scope, String... attrsToReturn) throws LdapException, CursorException {
+//        LOG.debug("Formulating search query using the following scope: " + scope.toString() + " filter: "
+//                + System.lineSeparator() + filter + System.lineSeparator() + " to return the following attributes: " + attrsToReturn);
+//
+//        SearchRequest searchRequest = new SearchRequestImpl();
+//        searchRequest.setBase(new Dn(getBaseContext()));
+//        searchRequest.setFilter(filter);
+//        searchRequest.setScope(scope);
+//        searchRequest.addAttributes(attrsToReturn);
+//        searchRequest.ignoreReferrals();
+//
+//        List<Entry> entries = new ArrayList<Entry>();
+//
+//        try {
+//            SearchCursor searchCursor = getClient().search(searchRequest);
+//            while (searchCursor.next()) {
+//                Response response = searchCursor.get();
+//                if (response instanceof SearchResultEntry) {
+//                    Entry entry = ((SearchResultEntry) response).getEntry();
+//                    entries.add(entry);
+//                }
+//            }
+//            searchCursor.close();
+//        } catch (IOException e) {
+//            throw new IllegalStateException("IO Error: " + e.getMessage(), e);
+//        } catch (CursorLdapReferralException e) {
+//            throw new IllegalStateException("Got referral to: " + e.getReferralInfo(), e);
+//        }
+//
+//        return remapToIdentity(entries);
+//    }
 
-        SearchRequest searchRequest = new SearchRequestImpl();
-        searchRequest.setBase(new Dn(getBaseContext()));
-        searchRequest.setFilter(filter);
-        searchRequest.setScope(scope);
-        searchRequest.addAttributes(attrsToReturn);
-        searchRequest.ignoreReferrals();
-
-        List<Entry> entries = new ArrayList<Entry>();
-
-        try {
-            SearchCursor searchCursor = getClient().search(searchRequest);
-            while (searchCursor.next()) {
-                Response response = searchCursor.get();
-                if (response instanceof SearchResultEntry) {
-                    Entry entry = ((SearchResultEntry) response).getEntry();
-                    entries.add(entry);
-                }
-            }
-            searchCursor.close();
-        } catch (IOException e) {
-            throw new IllegalStateException("IO Error: " + e.getMessage(), e);
-        } catch (CursorLdapReferralException e) {
-            throw new IllegalStateException("Got referral to: " + e.getReferralInfo(), e);
-        }
-
-        return remapToIdentity(entries);
-    }
-
-    private List<Identity> remapToIdentity(List<Entry> entries) {
-
-        List<Identity> identities = new ArrayList<>();
-
-        entries.forEach(entry -> {
-
-
-            String uid = "";
-
-            if (uidAttr != null && !(uidAttr.isEmpty())) {
-
-                uid = entry.get(uidAttr).get().getValue();
-            } else {
-                uid = entry.get(DEFAULT_UID_NAME).get().getValue();
-            }
-
-            if (uid != null) {
-
-                List<Attribute> attrs = new ArrayList<>();
-
-                entry.getAttributes().forEach(attr -> {
-                    Attribute attribute = new Attribute(attr.getId());
-                    List<Object> values = new ArrayList<>();
-                    attr.forEach(value -> values.add(value.getValue()));
-
-                    Map<Diff, Collection<Object>> stateAndValue = new HashMap<>();
-                    stateAndValue.put(Diff.NONE, values);
-
-                    attribute.setValues(stateAndValue);
-
-                    attrs.add(attribute);
-
-                });
-
-                Identity identity = new Identity(uid, attrs);
-                identities.add(identity);
-            }
-        });
-
-        return identities;
-    }
+//    private List<Identity> remapToIdentity(List<Entry> entries) {
+//
+//        List<Identity> identities = new ArrayList<>();
+//
+//        entries.forEach(entry -> {
+//
+//
+//            String uid = "";
+//
+//            if (uidAttr != null && !(uidAttr.isEmpty())) {
+//
+//                uid = entry.get(uidAttr).get().getValue();
+//            } else {
+//                uid = entry.get(DEFAULT_UID_NAME).get().getValue();
+//            }
+//
+//            if (uid != null) {
+//
+//                Map<String, Attribute> attrs = new ArrayList<>();
+//
+//                entry.getAttributes().forEach(attr -> {
+//                    Attribute attribute = new Attribute(attr.getId());
+//                    List<Object> values = new ArrayList<>();
+//                    attr.forEach(value -> values.add(value.getValue()));
+//
+//                    Map<Diff, Collection<Object>> stateAndValue = new HashMap<>();
+//                    stateAndValue.put(Diff.NONE, values);
+//
+//                    attribute.setValues(stateAndValue);
+//
+//                    attrs.add(attribute);
+//
+//                });
+//
+//                Identity identity = new Identity(uid, attrs);
+//                identities.add(identity);
+//            }
+//        });
+//
+//        return identities;
+//    }
 
     private String translateToLdapQuery(QueryBuilder query) {
 
         return null;
     }
 
-    private LdapSearchResult pagedSearch(String filter, Integer size, SearchScope searchScope, LdapSearchResult searchResult) throws LdapException, IOException {
-
-        if (filter != null && !(filter.isEmpty())) {
-        } else {
-            filter = "(ObjectClass=*)";
-        }
-
-        PagedResults pagedSearchControl = new PagedResultsImpl();
-        pagedSearchControl.setSize(size);
-        pagedSearchControl.setCookie(searchResult.getCookie());
-        pagedSearchControl.setCritical(true);
-
-        List<Entry> entries = new ArrayList<Entry>();
-        SearchCursor searchCursor = null;
-
-        try {
-            SearchRequest searchRequest = new SearchRequestImpl();
-            searchRequest.setBase(new Dn(getBaseContext()));
-            searchRequest.setFilter(filter);
-            searchRequest.setScope(searchScope);
-            searchRequest.addAttributes("*");
-            searchRequest.addControl(pagedSearchControl);
-
-
-            searchCursor = getClient().search(searchRequest);
-            int i = 0;
-
-            while (searchCursor.next()) {
-                Response response = searchCursor.get();
-                if (response instanceof SearchResultEntry) {
-                    Entry entry = ((SearchResultEntry) response).getEntry();
-                    entries.add(entry);
-                }
-            }
-
-            SearchResultDone result = searchCursor.getSearchResultDone();
-            pagedSearchControl = (PagedResults) result.getControl(PagedResults.OID);
-
-
-            if (result.getLdapResult().getResultCode() == ResultCodeEnum.UNWILLING_TO_PERFORM) {
-                LOG.error("The server reported an error: " + ResultCodeEnum.UNWILLING_TO_PERFORM);
-
-            }
-        } catch (CursorException e) {
-
-            LOG.error("And unexpected exception: " + e.getLocalizedMessage());
-        } finally {
-            if (searchCursor != null) {
-                searchCursor.close();
-            }
-        }
-
-        byte[] cookie = pagedSearchControl.getCookie();
-
-
-        if (Strings.isEmpty(cookie)) {
-            LOG.debug("Cookie returned by paged search is empty.");
-        }
-
-        searchResult.setCookie(cookie);
-        searchResult.setIdentities(remapToIdentity(entries));
-
-        return searchResult;
-    }
+//    private LdapSearchResult pagedSearch(String filter, Integer size, SearchScope searchScope, LdapSearchResult searchResult) throws LdapException, IOException {
+//
+//        if (filter != null && !(filter.isEmpty())) {
+//        } else {
+//            filter = "(ObjectClass=*)";
+//        }
+//
+//        PagedResults pagedSearchControl = new PagedResultsImpl();
+//        pagedSearchControl.setSize(size);
+//        pagedSearchControl.setCookie(searchResult.getCookie());
+//        pagedSearchControl.setCritical(true);
+//
+//        List<Entry> entries = new ArrayList<Entry>();
+//        SearchCursor searchCursor = null;
+//
+//        try {
+//            SearchRequest searchRequest = new SearchRequestImpl();
+//            searchRequest.setBase(new Dn(getBaseContext()));
+//            searchRequest.setFilter(filter);
+//            searchRequest.setScope(searchScope);
+//            searchRequest.addAttributes("*");
+//            searchRequest.addControl(pagedSearchControl);
+//
+//
+//            searchCursor = getClient().search(searchRequest);
+//            int i = 0;
+//
+//            while (searchCursor.next()) {
+//                Response response = searchCursor.get();
+//                if (response instanceof SearchResultEntry) {
+//                    Entry entry = ((SearchResultEntry) response).getEntry();
+//                    entries.add(entry);
+//                }
+//            }
+//
+//            SearchResultDone result = searchCursor.getSearchResultDone();
+//            pagedSearchControl = (PagedResults) result.getControl(PagedResults.OID);
+//
+//
+//            if (result.getLdapResult().getResultCode() == ResultCodeEnum.UNWILLING_TO_PERFORM) {
+//                LOG.error("The server reported an error: " + ResultCodeEnum.UNWILLING_TO_PERFORM);
+//
+//            }
+//        } catch (CursorException e) {
+//
+//            LOG.error("And unexpected exception: " + e.getLocalizedMessage());
+//        } finally {
+//            if (searchCursor != null) {
+//                searchCursor.close();
+//            }
+//        }
+//
+//        byte[] cookie = pagedSearchControl.getCookie();
+//
+//
+//        if (Strings.isEmpty(cookie)) {
+//            LOG.debug("Cookie returned by paged search is empty.");
+//        }
+//
+//        searchResult.setCookie(cookie);
+//        searchResult.setIdentities(remapToIdentity(entries));
+//
+//        return searchResult;
+//    }
 
     private void cleanClient() throws LdapException, IOException {
         getClient().unBind();
