@@ -9,7 +9,8 @@ class SimpleComparator implements Comparator {
 
     @Override
     String query() {
-        return null
+        // TODO dummy select
+        return "SELECT * FROM test.test ORDER BY UID"
     }
 
     @Override
@@ -35,12 +36,14 @@ class SimpleComparator implements Comparator {
 
     @Override
     Identity compareData(Identity oldIdentity, Identity newIdentity) {
-        Map<String, Attribute> old = oldIdentity.getAttrs()
-
-        for(String attrName:old){
-
-
+        Map<String, Attribute> oldSet = oldIdentity.getAttrs()
+        Map<String, Attribute> newSet = newIdentity.getAttrs()
+        for(String attrName:oldSet){
+          newAttr=  newSet.get(attrName)
+            // TODO implement compare directly in attr class ???
         }
+
+        
 
     }
 }
