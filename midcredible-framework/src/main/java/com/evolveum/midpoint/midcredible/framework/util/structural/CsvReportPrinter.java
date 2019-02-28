@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
+import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import com.evolveum.midpoint.midcredible.framework.util.State;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -8,7 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CsvReportPrinter {
 
@@ -48,6 +52,8 @@ public class CsvReportPrinter {
     }
 
     private void printCsvHeader(CSVPrinter printer, List<String> columnNames) throws IOException {
+      //TODO set to debug
+        LOG.info("Printing header based on the following column names+ "+ columnNames.toString());
         columnNames.sort(String::compareTo);
         int columns = columnNames.size();
         String[] header = new String[columns + 1];
@@ -67,6 +73,7 @@ public class CsvReportPrinter {
             isFirst = false;
         }
         printCsvRow(printer, attrNames, identity);
+       printer.flush();
     }
 
     private void printCsvRow(CSVPrinter printer, List<String> attrNames, Identity identity) throws IOException {
@@ -78,11 +85,20 @@ public class CsvReportPrinter {
         attrNames.sort(String::compareTo);
 
         row[0] = identity.getChange().getCharacter();
+        AtomicInteger i = new AtomicInteger();
         attrNames.forEach(name -> {
-            int i = 0;
+            StringBuilder valueString = new StringBuilder();
+            // TODO
+           // LOG.info("Attribute to be printed: "+ name);
             Attribute attr = identity.getAttrs().get(name);
-            StringBuilder valueString = null;
-            attr.getValues().forEach((diff, objects) -> {
+            Map<Diff, Collection<Object>> attrValues = attr.getValues();
+            if (attrValues==null){
+
+                LOG.error("Attribute not present in attribute list");
+            }
+
+
+            attrValues.forEach((diff, objects) -> {
                 int count = 1;
                 objects.forEach(object -> {
 
@@ -91,15 +107,21 @@ public class CsvReportPrinter {
                     }
 
                     valueString.append(object != null ? object.toString() : "[null]");
-
+                    LOG.info("The value string: "+valueString.toString());
                     if (count < objects.size()) {
                         valueString.append(DEFAULT_MV_SEPARATOR);
                     }
                 });
             });
 
-            row[i + 1] = valueString != null ? valueString.toString() : "[null]";
+            row[i.get() + 1] = valueString != null ? valueString.toString() : "[null]";
+            i.getAndIncrement();
         });
+
+        for(int j = 0; j <row.length; j++){
+            LOG.info("The values in row: "+row[j]);
+
+        }
         printer.printRecord(row);
     }
 }

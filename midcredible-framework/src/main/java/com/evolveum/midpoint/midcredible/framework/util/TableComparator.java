@@ -37,16 +37,20 @@ public class TableComparator {
     }
 
 
-    public void compare(String outputFilePath, String identificator, Boolean compareAttributes) {
+    public void compare(String outputFilePath, String identificator, Boolean compareAttributes) throws SQLException {
         try {
             executeComparison(setupComparator(), outputFilePath, identificator, compareAttributes);
         } catch (IOException e) {
+
             e.printStackTrace();
         } catch (ScriptException e) {
+            LOG.error("Exception white iterating trough result set " + e.getLocalizedMessage());
             e.printStackTrace();
         } catch (IllegalAccessException e) {
+            LOG.error("Exception white iterating trough result set " + e.getLocalizedMessage());
             e.printStackTrace();
         } catch (InstantiationException e) {
+            LOG.error("Exception white iterating trough result set " + e.getLocalizedMessage());
             e.printStackTrace();
         } finally {
 
@@ -55,15 +59,15 @@ public class TableComparator {
         }
     }
 
-    protected void executeComparison(Comparator comparator, String outputFilePath, String identificator, Boolean compareAttributes) {
+    protected void executeComparison(Comparator comparator, String outputFilePath, String identificator, Boolean compareAttributes) throws SQLException, IOException {
 
         //TODO path from property file
         CsvReportPrinter reportPrinter = new CsvReportPrinter(outputFilePath);
 
         ResultSet oldRs = null;
         ResultSet newRs = null;
-        ResultSetMetaData md = null;
-        List attributeList = null;
+        ResultSetMetaData md;
+        List attributeList = new ArrayList();
 
         try {
             oldRs = createResultSet(comparator.query(), oldResource);
@@ -72,13 +76,17 @@ public class TableComparator {
 
             int columns = md.getColumnCount();
 
-            for (int i = 0; i < columns; i++) {
+            LOG.info("Number of columns fetched: "+ columns);
+
+            for (int i = 1; i < columns; i++) {
+
                 attributeList.add(md.getColumnName(i));
             }
 
         } catch (SQLException e) {
+            LOG.error("An error has occurred: " +e.getLocalizedMessage());
             //TODO
-            e.printStackTrace();
+           throw e;
         }
 
         Identity oldRow;
@@ -89,9 +97,9 @@ public class TableComparator {
                 oldRow = createIdentityFromRow(oldRs, identificator);
 
                 if (!newRs.next()) {
-                    // there's nothing left in new table, old table contains more rows than it should, mark old rows as "-"
-//			printCsvRow(printer, "-", oldRs);
-                    break;
+                    oldRow.setChanged(State.OLD_AFTER_NEW);
+                    reportPrinter.printCsvRow(attributeList, oldRow);
+                    //break;
                 }
 
                 newRow = createIdentityFromRow(newRs, identificator);
@@ -106,10 +114,13 @@ public class TableComparator {
                         }
                     case OLD_BEFORE_NEW:
                         // new table contains row that shouldn't be there, mark new as "+"
+                        newRow.setChanged(State.OLD_BEFORE_NEW);
                         reportPrinter.printCsvRow(attributeList, newRow);
                         //printCsvRow(printer, "+", newRs);
                         break;
                     case OLD_AFTER_NEW:
+
+                        oldRow.setChanged(State.OLD_AFTER_NEW);
                         reportPrinter.printCsvRow(attributeList, oldRow);
                         // new table misses some rows obviously, therefore old row should be marked as "-"
                         //printCsvRow(printer, "-", oldRs);
@@ -125,26 +136,49 @@ public class TableComparator {
         } catch (SQLException e) {
             // TODO
             LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
+            throw e;
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO
+            LOG.error("IO exception white iterating trough result set " + e.getLocalizedMessage());
+            throw e;
         }
     }
 
     private Identity createIdentityFromRow(ResultSet rs, String identifier) throws SQLException {
-        Identity identity = new Identity(rs.getObject(identifier).toString(), new HashMap<>());
+        String id = rs.getObject(identifier).toString();
+
+        //TODO change to trace
+        LOG.info("Creating identity with the id: "+id);
+
+        Identity identity = new Identity(id, new HashMap<>());
         ResultSetMetaData md = rs.getMetaData();
         int columns = md.getColumnCount();
 
-        for (int i = 0; i < columns; i++) {
+        for (int i = 1; i < columns; i++) {
+
             String colName = md.getColumnName(i);
+            //TODO change to trace
+            LOG.info("Setting up attribute: "+ colName);
+
             Attribute attr = new Attribute(colName);
-            Map<Diff, Collection> valueMap = new HashMap();
-            attr.setInitialSingleValue(rs.getObject(i));
+            Object object= rs.getObject(i);
+            attr.setInitialSingleValue(object);
+            //TODO change to trace
+            LOG.info("Pushing object value to attribute: "+ object);
+
             Map map = identity.getAttrs();
             map.put(colName, attr);
             identity.setAttrs(map);
         }
 
+//       identity.getAttrs().forEach((string,attribute)->{
+//           attribute.getValues().forEach((diff,object)->{
+//
+//              LOG.info("The attribute "+ string +" has the values "+ object.toString());
+//
+//           });
+//
+//       });
         return identity;
     }
 

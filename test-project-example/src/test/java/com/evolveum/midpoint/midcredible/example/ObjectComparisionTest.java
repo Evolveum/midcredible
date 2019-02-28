@@ -3,9 +3,13 @@ import com.evolveum.midpoint.midcredible.framework.LdapButler;
 import com.evolveum.midpoint.midcredible.framework.TableButler;
 import com.evolveum.midpoint.midcredible.framework.test.ButlerBaseTest;
 import com.evolveum.midpoint.midcredible.framework.util.JdbcUtil;
+import com.evolveum.midpoint.midcredible.framework.util.TableComparator;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 
 @ContextConfiguration(classes = com.evolveum.midpoint.midcredible.example.ContextConfiguration.class)
 public class ObjectComparisionTest extends ButlerBaseTest {
@@ -14,11 +18,12 @@ public class ObjectComparisionTest extends ButlerBaseTest {
 
     TableButler targetResourceTable = null;
     TableButler comparisonSourceTable= null;
-
+    DataSource oldDb;
+    DataSource newDb;
     private static final String COMPARATOR = "./src/test/resources/SimpleComparator.groovy";
     private static final String OUT = "./src/test/resources/out.csv";
 
-
+    @BeforeClass
     @Override
     public void beforeClass() throws Exception {
         super.beforeClass();
@@ -30,6 +35,8 @@ public class ObjectComparisionTest extends ButlerBaseTest {
 
 
         JdbcUtil util = new JdbcUtil();
+        oldDb = util.setupDataSource("jdbc:oracle:thin:@:1521:xe","","","oracle.jdbc.OracleDriver");
+        newDb = util.setupDataSource("jdbc:oracle:thin:@:1521:xe","","","oracle.jdbc.OracleDriver");
        // DataSource dataSource = util.setupDataSource()
     }
 
@@ -43,14 +50,10 @@ public class ObjectComparisionTest extends ButlerBaseTest {
 //                                    .execute();
 //    }
 
-//      public void testCompareAllResourceJdbc() throws Exception {
-//
-//          targetResourceTable
-//                  .statistics()
-//                    .toCsv(OUT)
-//                    .toLog()
-//                  .confirm()
-//                    .compare(comparisonSourceTable);
-//
-//    }
+      @Test
+      public void testCompareAllResourceJdbc() throws SQLException {
+          TableComparator tableCompare = new TableComparator(newDb, oldDb,COMPARATOR);
+          tableCompare.compare(OUT,"ID",false);
+
+    }
 }

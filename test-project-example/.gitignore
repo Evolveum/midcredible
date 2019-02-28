@@ -9,5 +9,5 @@ target
 
 midpoint/midpoint-*
 midpoint/users.csv
-
+/src/test/resources/out.csv
 ENV.properties

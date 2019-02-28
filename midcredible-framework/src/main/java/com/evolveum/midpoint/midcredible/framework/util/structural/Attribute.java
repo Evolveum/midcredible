@@ -32,11 +32,13 @@ public class Attribute {
 
 
     public void setInitialSingleValue(Object value) {
-        Map<Diff, Collection> valueMap = new HashMap<>();
-        Collection values = new ArrayList();
-        values.add(value);
 
-        valueMap.put(Diff.NONE, values);
+        Map<Diff, Collection<Object>> valueMap = new HashMap<>();
+        Collection val = new ArrayList();
+        val.add(value);
+
+      valueMap.put(Diff.NONE, val);
+        values = valueMap;
     }
 
     public void setInitialMutliValue(Object values) {

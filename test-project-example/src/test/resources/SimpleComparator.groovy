@@ -9,7 +9,7 @@ class SimpleComparator implements Comparator {
     @Override
     String query() {
         // TODO dummy select
-        return "SELECT * FROM test.test ORDER BY UID"
+        return "SELECT * FROM TEST ORDER BY ID"
     }
 
     @Override
