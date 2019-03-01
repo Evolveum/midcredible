@@ -155,7 +155,11 @@ public class TableComparator implements DatabaseComparable {
                         } else {
 
                             Entity difference = comparator.compareData(oldRow, newRow);
+
+                            if(State.MODIFIED == difference.getChange()){
+
                             reportPrinter.printCsvRow(attributeList, difference);
+                            }
 
                             iterateNew = true;
                             iterateOld = true;
@@ -185,7 +189,7 @@ public class TableComparator implements DatabaseComparable {
 
             while (newRs.next()) {
                 newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
-                newRow.setChanged(State.OLD_BEFORE_NEW);
+                newRow.setChanged(State.NEW_AFTER_OLD);
                 reportPrinter.printCsvRow(attributeList, newRow);
             }
         } catch (SQLException e) {

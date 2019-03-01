@@ -17,8 +17,14 @@ public enum State {
      * Used when rows are not equal and old row is "after" new, when comparing
      * columns that were used for ordering result sets
      */
-
     OLD_AFTER_NEW("+"),
+
+    /**
+     * Used when rows are not equal and new row is "after" old after iterating through the last old row, when comparing
+     * columns that were used for ordering result sets
+     */
+    NEW_AFTER_OLD("+"),
+
     /**
      * User if two rows are equal (identifiers are the same) and a difference in attribute
      * values was detected

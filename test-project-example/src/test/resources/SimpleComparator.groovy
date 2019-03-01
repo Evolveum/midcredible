@@ -18,8 +18,8 @@ class SimpleComparator implements Comparator {
     @Override
     String buildIdentifier(Map<Label, Object> atomicEntity) {
 
-        for(Label l:atomicEntity.keySet()){
-            if(ID == l.getName()){
+        for (Label l : atomicEntity.keySet()) {
+            if (ID == l.getName()) {
                 return atomicEntity.get(l)
             }
         }
@@ -51,21 +51,24 @@ class SimpleComparator implements Comparator {
     @Override
     Entity compareData(Entity oldEntity, Entity newEntity) {
 
+        boolean hasChange = false;
+
         Entity diffIdentity = new Entity(oldEntity.getId(), new HashMap<String, Attribute>())
         Map<String, Attribute> oldSet = oldEntity.getAttrs()
         Map<String, Attribute> newSet = newEntity.getAttrs()
 
-        for (String attrName : oldSet) {
+        for (String attrName : oldSet.keySet()) {
             Attribute newAttr = newSet.get(attrName)
             Attribute oldAttr = oldSet.get(attrName)
-
 
             Collection newValues = newAttr.getValues().get(Diff.NONE)
             Collection oldValues = oldAttr.getValues().get(Diff.NONE)
             Map<Diff, Collection<Object>> diffValues = new HashMap<>()
 
             for (Object o : oldValues) {
+
                 if (newValues.contains(o)) {
+
                     Integer amouthO = Collections.frequency(oldValues, o)
                     Integer amouthN = Collections.frequency(oldValues, o)
 
@@ -74,14 +77,17 @@ class SimpleComparator implements Comparator {
                         diffValues = checkAndAddCollection(diffValues, Diff.EQUALS, o)
                     } else if (amouthO > amouthN) {
 
+                        hasChange = true;
                         diffValues = checkAndAddCollection(diffValues, Diff.REMOVE, o)
                     } else {
 
+                        hasChange = true;
                         diffValues = checkAndAddCollection(diffValues, Diff.ADD, o)
                     }
 
                 } else {
 
+                    hasChange = true;
                     diffValues = checkAndAddCollection(diffValues, Diff.REMOVE, o)
                 }
 
@@ -89,10 +95,16 @@ class SimpleComparator implements Comparator {
 
             Attribute diffAttr = new Attribute(attrName)
             diffAttr.setValues(diffValues)
-            map = diffIdentity.getAttrs()
+            Map<String, Attribute> map = diffIdentity.getAttrs()
             map.put(attrName, diffAttr)
             diffIdentity.setAttrs(map)
             // TODO implement compare directly in attr class ???
+        }
+
+        if (hasChange) {
+            diffIdentity.setChanged(State.MODIFIED)
+        } else {
+            diffIdentity.setChanged(State.EQUAL)
         }
 
         return diffIdentity

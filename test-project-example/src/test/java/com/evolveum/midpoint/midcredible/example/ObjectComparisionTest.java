@@ -24,7 +24,7 @@ public class ObjectComparisionTest extends ButlerBaseTest {
     @Test
     public void testCompareAllResourceJdbc() throws SQLException, IOException {
         TableComparator tableCompare = new TableComparator(PROPERTIES);
-        tableCompare.compare(false);
+        tableCompare.compare(true);
 
     }
 }
