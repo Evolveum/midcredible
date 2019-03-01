@@ -1,31 +1,12 @@
 package com.evolveum.midpoint.midcredible.framework;
 
-import com.evolveum.midpoint.midcredible.framework.util.Comparator;
-import com.evolveum.midpoint.midcredible.framework.util.JdbcUtil;
-import com.evolveum.midpoint.midcredible.framework.util.State;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Jdbc.Column;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Outcome;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import javax.sql.DataSource;
-import java.io.File;
-import java.io.IOException;
-import java.sql.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Viliam Repan (lazyman).

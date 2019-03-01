@@ -1,27 +1,13 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
-import com.evolveum.midpoint.midcredible.framework.ResourceButler;
-import com.evolveum.midpoint.midcredible.framework.util.structural.FilterTree;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Outcome;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Label;
 
 import java.util.Map;
 
-public class ComparatorImpl implements Comparator {
-    @Override
-    public String query() {
-        return null;
-    }
+public class ComparatorImpl{
 
-    @Override
-    public State compareIdentity(Identity oldIdentity, Identity newIdentity) {
-        return null;
-    }
-
-    @Override
-    public Identity compareData(Identity oldIdentity, Identity newIdentity) {
-        return null;
-    }
 //
 //    private final ResourceButler producedResource;
 //    private ResourceButler analyzedResource;
@@ -52,7 +38,7 @@ public class ComparatorImpl implements Comparator {
 //        return new QueryBuilder(filterTree, this);
 //    }
 //
-//    protected Outcome compare(Identity produced, Identity compared) {
+//    protected Outcome compare(Entity produced, Entity compared) {
 //
 //        return null;
 //    }

@@ -1,24 +1,13 @@
 package com.evolveum.midpoint.midcredible.framework;
 
 import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
-import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import com.evolveum.midpoint.midcredible.framework.util.QueryBuilder;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.directory.api.ldap.model.cursor.CursorException;
-import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
-import org.apache.directory.api.ldap.model.cursor.SearchCursor;
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.message.*;
-import org.apache.directory.api.ldap.model.message.controls.PagedResults;
-import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
-import org.apache.directory.api.ldap.model.name.Dn;
-import org.apache.directory.api.util.Strings;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.slf4j.Logger;
@@ -178,7 +167,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
         openDJController.stop();
     }
 
-//	public List<Identity> search(QueryBuilder query, SearchScope scope, String... attrsToReturn) throws CursorException, LdapException {
+//	public List<Entity> search(QueryBuilder query, SearchScope scope, String... attrsToReturn) throws CursorException, LdapException {
 //
 //		String filter = translateToLdapQuery(query);
 //		if (scope!=null){
@@ -189,7 +178,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 //	return search(filter,scope,attrsToReturn);
 //	}
 
-//    private List<Identity> search(String filter, SearchScope scope, String... attrsToReturn) throws LdapException, CursorException {
+//    private List<Entity> search(String filter, SearchScope scope, String... attrsToReturn) throws LdapException, CursorException {
 //        LOG.debug("Formulating search query using the following scope: " + scope.toString() + " filter: "
 //                + System.lineSeparator() + filter + System.lineSeparator() + " to return the following attributes: " + attrsToReturn);
 //
@@ -221,9 +210,9 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 //        return remapToIdentity(entries);
 //    }
 
-//    private List<Identity> remapToIdentity(List<Entry> entries) {
+//    private List<Entity> remapToIdentity(List<Entry> entries) {
 //
-//        List<Identity> identities = new ArrayList<>();
+//        List<Entity> identities = new ArrayList<>();
 //
 //        entries.forEach(entry -> {
 //
@@ -255,7 +244,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
 //
 //                });
 //
-//                Identity identity = new Identity(uid, attrs);
+//                Entity identity = new Entity(uid, attrs);
 //                identities.add(identity);
 //            }
 //        });
@@ -341,7 +330,7 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
     public class LdapSearchResult {
 
         private byte[] cookie;
-        private List<Identity> identities;
+        private List<Entity> identities;
 
         public byte[] getCookie() {
             return cookie;
@@ -351,11 +340,11 @@ public class LdapButler extends ResourceButler<LdapNetworkConnection> {
             this.cookie = cookie;
         }
 
-        public List<Identity> getIdentities() {
+        public List<Entity> getIdentities() {
             return identities;
         }
 
-        public void setIdentities(List<Identity> identities) {
+        public void setIdentities(List<Entity> identities) {
             this.identities = identities;
         }
     }

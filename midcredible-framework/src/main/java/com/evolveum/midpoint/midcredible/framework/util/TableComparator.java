@@ -2,8 +2,8 @@ package com.evolveum.midpoint.midcredible.framework.util;
 
 import com.evolveum.midpoint.midcredible.framework.TableButler;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
-import com.evolveum.midpoint.midcredible.framework.util.structural.CsvReportPrinter;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Identity;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Label;
 import groovy.lang.GroovyClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
@@ -15,42 +15,71 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.sql.DataSource;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
-public class TableComparator {
+public class TableComparator implements DatabaseComparable {
 
-    private final DataSource newResource;
-    private final DataSource oldResource;
-    private final String comparatorPath;
+    private DataSource newResource;
+    private DataSource oldResource;
+    private String comparatorPath;
+    private String ourCsvFilePath;
+
     private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
 
-    public TableComparator(TableButler newResource, DataSource OldResource, String comparatorPath) {
-        this(newResource.getClient().getDataSource(), OldResource, comparatorPath);
-    }
+    public TableComparator(String properties) throws IOException {
 
-    public TableComparator(DataSource newResource, DataSource oldResource, String comparatorPath) {
-        this.newResource = newResource;
-        this.oldResource = oldResource;
-        this.comparatorPath = comparatorPath;
+        this(null, properties);
     }
 
 
-    public void compare(String outputFilePath, String identificator, Boolean compareAttributes) throws SQLException {
+    public TableComparator(TableButler newResource, String properties) throws IOException {
+
+        if (newResource != null) {
+
+            this.newResource = newResource.getClient().getDataSource();
+        } else {
+
+            fetchDataFromProperties(properties);
+        }
+
+    }
+
+    private void fetchDataFromProperties(String propertiesPath) throws IOException {
+
+        FileInputStream input = new FileInputStream(propertiesPath);
+        Properties properties = new Properties();
+        properties.load(input);
+
+        JdbcUtil util = new JdbcUtil();
+        oldResource = util.setupDataSource(properties.getProperty(JDBC_URL_OLD_RESOURCE), properties.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
+                , properties.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), properties.getProperty(JDBC_DRIVER));
+
+        newResource = util.setupDataSource(properties.getProperty(JDBC_URL_NEW_RESOURCE), properties.getProperty(DATABASE_USERNAME_NEW_RESOURCE)
+                , properties.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), properties.getProperty(JDBC_DRIVER));
+
+        comparatorPath = properties.getProperty(COMPARATOR_LOCATION);
+        ourCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
+    }
+
+
+    public void compare(Boolean compareAttributes) throws SQLException {
         try {
-            executeComparison(setupComparator(), outputFilePath, identificator, compareAttributes);
+            executeComparison(setupComparator(), compareAttributes);
         } catch (IOException e) {
 
             e.printStackTrace();
         } catch (ScriptException e) {
-            LOG.error("Exception white iterating trough result set " + e.getLocalizedMessage());
+            LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
             e.printStackTrace();
         } catch (IllegalAccessException e) {
-            LOG.error("Exception white iterating trough result set " + e.getLocalizedMessage());
+            LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
             e.printStackTrace();
         } catch (InstantiationException e) {
-            LOG.error("Exception white iterating trough result set " + e.getLocalizedMessage());
+            LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
             e.printStackTrace();
         } finally {
 
@@ -59,13 +88,11 @@ public class TableComparator {
         }
     }
 
-    protected void executeComparison(Comparator comparator, String outputFilePath, String identificator, Boolean compareAttributes) throws SQLException, IOException {
+    protected void executeComparison(Comparator comparator, Boolean compareAttributes) throws SQLException, IOException {
+        CsvReportPrinter reportPrinter = new CsvReportPrinter(ourCsvFilePath);
 
-        //TODO path from property file
-        CsvReportPrinter reportPrinter = new CsvReportPrinter(outputFilePath);
-
-        ResultSet oldRs = null;
-        ResultSet newRs = null;
+        ResultSet oldRs;
+        ResultSet newRs;
         ResultSetMetaData md;
         List attributeList = new ArrayList();
 
@@ -76,7 +103,7 @@ public class TableComparator {
 
             int columns = md.getColumnCount();
 
-            LOG.info("Number of columns fetched: "+ columns);
+            LOG.info("Number of columns fetched: " + columns);
 
             for (int i = 1; i < columns; i++) {
 
@@ -84,52 +111,80 @@ public class TableComparator {
             }
 
         } catch (SQLException e) {
-            LOG.error("An error has occurred: " +e.getLocalizedMessage());
+            LOG.error("An error has occurred: " + e.getLocalizedMessage());
             //TODO
-           throw e;
+            throw e;
         }
 
-        Identity oldRow;
-        Identity newRow;
+
+        Entity oldRow = null;
+        Entity newRow;
+        boolean iterateNew = true;
+        boolean iterateOld = true;
 
         try {
-            while (oldRs.next()) {
-                oldRow = createIdentityFromRow(oldRs, identificator);
+            while (true) {
 
-                if (!newRs.next()) {
-                    oldRow.setChanged(State.OLD_AFTER_NEW);
-                    reportPrinter.printCsvRow(attributeList, oldRow);
-                    //break;
+                if (iterateOld) {
+                    if (oldRs.next()) {
+                        oldRow = createIdentityFromRow(oldRs, comparator.buildIdentifier(createMapFromRow(oldRs)));
+                    } else {
+                        break;
+                    }
                 }
 
-                newRow = createIdentityFromRow(newRs, identificator);
-                State state = comparator.compareIdentity(oldRow, newRow);
+                if (iterateNew) {
+                    if (!newRs.next()) {
+                        oldRow.setChanged(State.OLD_AFTER_NEW);
+                        reportPrinter.printCsvRow(attributeList, oldRow);
+                        iterateOld = true;
+                        //break;
+                    }
+                }
+
+                newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
+
+                State state = comparator.compareEntity(oldRow, newRow);
                 switch (state) {
                     case EQUAL:
                         if (!compareAttributes) {
+
+                            iterateNew = true;
+                            iterateOld = true;
                             continue;
                         } else {
-                            Identity difference = comparator.compareData(oldRow, newRow);
+
+                            Entity difference = comparator.compareData(oldRow, newRow);
                             reportPrinter.printCsvRow(attributeList, difference);
+
+                            iterateNew = true;
+                            iterateOld = true;
                         }
+
+                        break;
                     case OLD_BEFORE_NEW:
-                        // new table contains row that shouldn't be there, mark new as "+"
-                        newRow.setChanged(State.OLD_BEFORE_NEW);
-                        reportPrinter.printCsvRow(attributeList, newRow);
-                        //printCsvRow(printer, "+", newRs);
+
+                        // new table misses some rows obviously, therefore old row should be marked as "-"
+                        oldRow.setChanged(State.OLD_BEFORE_NEW);
+                        reportPrinter.printCsvRow(attributeList, oldRow);
+                        //printCsvRow(printer, "-", newRs);
+                        iterateNew = false;
+                        iterateOld = true;
                         break;
                     case OLD_AFTER_NEW:
 
-                        oldRow.setChanged(State.OLD_AFTER_NEW);
-                        reportPrinter.printCsvRow(attributeList, oldRow);
-                        // new table misses some rows obviously, therefore old row should be marked as "-"
-                        //printCsvRow(printer, "-", oldRs);
+                        newRow.setChanged(State.OLD_AFTER_NEW);
+                        reportPrinter.printCsvRow(attributeList, newRow);
+                        // new table contains row that shouldn't be there, mark new as "+"
+                        //printCsvRow(printer, +", oldRs);
+                        iterateNew = true;
+                        iterateOld = false;
                         break;
                 }
             }
 
             while (newRs.next()) {
-                newRow = createIdentityFromRow(newRs, identificator);
+                newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
                 newRow.setChanged(State.OLD_BEFORE_NEW);
                 reportPrinter.printCsvRow(attributeList, newRow);
             }
@@ -144,34 +199,31 @@ public class TableComparator {
         }
     }
 
-    private Identity createIdentityFromRow(ResultSet rs, String identifier) throws SQLException {
-        String id = rs.getObject(identifier).toString();
+    private Entity createIdentityFromRow(ResultSet rs, String identifier) throws SQLException {
 
         //TODO change to trace
-        LOG.info("Creating identity with the id: "+id);
+        LOG.info("Creating entity with the id: " + identifier);
 
-        Identity identity = new Identity(id, new HashMap<>());
+        Entity entity = new Entity(identifier, new HashMap<>());
         ResultSetMetaData md = rs.getMetaData();
         int columns = md.getColumnCount();
 
         for (int i = 1; i < columns; i++) {
 
             String colName = md.getColumnName(i);
-            //TODO change to trace
-            LOG.info("Setting up attribute: "+ colName);
 
             Attribute attr = new Attribute(colName);
-            Object object= rs.getObject(i);
+            Object object = rs.getObject(i);
             attr.setInitialSingleValue(object);
             //TODO change to trace
-            LOG.info("Pushing object value to attribute: "+ object);
 
-            Map map = identity.getAttrs();
+            LOG.info("Setting up attribute: " + colName + " with value: " + object.toString());
+            Map map = entity.getAttrs();
             map.put(colName, attr);
-            identity.setAttrs(map);
+            entity.setAttrs(map);
         }
 
-//       identity.getAttrs().forEach((string,attribute)->{
+//       entity.getAttrs().forEach((string,attribute)->{
 //           attribute.getValues().forEach((diff,object)->{
 //
 //              LOG.info("The attribute "+ string +" has the values "+ object.toString());
@@ -179,7 +231,7 @@ public class TableComparator {
 //           });
 //
 //       });
-        return identity;
+        return entity;
     }
 
     private Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException {
@@ -215,6 +267,18 @@ public class TableComparator {
 
         PreparedStatement pstmt = con.prepareStatement(query);
         return pstmt.executeQuery();
+    }
+
+    private Map<Label, Object> createMapFromRow(ResultSet rs) throws SQLException {
+        ResultSetMetaData md = rs.getMetaData();
+        int columns = md.getColumnCount();
+
+        Map<Label, Object> map = new HashMap<>();
+        for (int i = 1; i < columns; i++) {
+            map.put(new Label(md.getColumnName(i), i), rs.getObject(i));
+        }
+
+        return map;
     }
 
 }

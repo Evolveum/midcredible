@@ -11,17 +11,18 @@ public enum State {
      * Used when rows are not equal and old row is "before" new, when comparing
      * columns that were used for ordering result sets
      */
-    OLD_BEFORE_NEW("+"),
+    OLD_BEFORE_NEW("-"),
 
     /**
      * Used when rows are not equal and old row is "after" new, when comparing
      * columns that were used for ordering result sets
      */
-    OLD_AFTER_NEW("-"),
+
+    OLD_AFTER_NEW("+"),
     /**
      * User if two rows are equal (identifiers are the same) and a difference in attribute
      * values was detected
-     * */
+     */
     MODIFIED("!");
 
     private String character;
@@ -35,4 +36,4 @@ public enum State {
     }
 
 
-    }
+}

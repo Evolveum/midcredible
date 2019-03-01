@@ -162,7 +162,7 @@ public class ProvisionUsersTest extends ButlerBaseTest {
         AssertJUnit.assertEquals(expectedCount, lCount);
     }
 
-//    private List<Identity> fetchObjectDataFromResource(ResourceButler butler, List<ShadowType> shadows){
+//    private List<Entity> fetchObjectDataFromResource(ResourceButler butler, List<ShadowType> shadows){
 //        QueryBuilderImplementation queryBuilderFactory = new QueryBuilderImplementation();
 //
 //

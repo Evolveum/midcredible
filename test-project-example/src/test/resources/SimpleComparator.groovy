@@ -2,9 +2,12 @@ import com.evolveum.midpoint.midcredible.framework.util.Comparator
 import com.evolveum.midpoint.midcredible.framework.util.Diff
 import com.evolveum.midpoint.midcredible.framework.util.State
 import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute
-import com.evolveum.midpoint.midcredible.framework.util.structural.Identity
+import com.evolveum.midpoint.midcredible.framework.util.structural.Entity
+import com.evolveum.midpoint.midcredible.framework.util.structural.Label
 
 class SimpleComparator implements Comparator {
+
+    String ID = "ID"
 
     @Override
     String query() {
@@ -13,10 +16,22 @@ class SimpleComparator implements Comparator {
     }
 
     @Override
-    State compareIdentity(Identity oldIdentity, Identity newIdentity) {
+    String buildIdentifier(Map<Label, Object> atomicEntity) {
 
-        String oldUid = oldIdentity.getId()
-        String newUid = newIdentity.getId()
+        for(Label l:atomicEntity.keySet()){
+            if(ID == l.getName()){
+                return atomicEntity.get(l)
+            }
+        }
+
+        return null
+    }
+
+    @Override
+    State compareEntity(Entity oldEntity, Entity newEntity) {
+
+        String oldUid = oldEntity.getId()
+        String newUid = newEntity.getId()
 
         Integer id = oldUid <=> newUid
 
@@ -34,11 +49,11 @@ class SimpleComparator implements Comparator {
     }
 
     @Override
-    Identity compareData(Identity oldIdentity, Identity newIdentity) {
+    Entity compareData(Entity oldEntity, Entity newEntity) {
 
-        Identity diffIdentity = new Identity(oldIdentity.getId(), new HashMap<String, Attribute>())
-        Map<String, Attribute> oldSet = oldIdentity.getAttrs()
-        Map<String, Attribute> newSet = newIdentity.getAttrs()
+        Entity diffIdentity = new Entity(oldEntity.getId(), new HashMap<String, Attribute>())
+        Map<String, Attribute> oldSet = oldEntity.getAttrs()
+        Map<String, Attribute> newSet = newEntity.getAttrs()
 
         for (String attrName : oldSet) {
             Attribute newAttr = newSet.get(attrName)

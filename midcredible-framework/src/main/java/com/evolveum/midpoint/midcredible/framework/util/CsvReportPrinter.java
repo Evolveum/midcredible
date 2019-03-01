@@ -1,7 +1,7 @@
-package com.evolveum.midpoint.midcredible.framework.util.structural;
+package com.evolveum.midpoint.midcredible.framework.util;
 
-import com.evolveum.midpoint.midcredible.framework.util.Diff;
-import com.evolveum.midpoint.midcredible.framework.util.State;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
+import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
@@ -67,30 +67,30 @@ public class CsvReportPrinter {
         printer.printRecord(header);
     }
 
-    public void printCsvRow(List<String> attrNames, Identity identity) throws IOException {
+    public void printCsvRow(List<String> attrNames, Entity entity) throws IOException {
         if (isFirst) {
             printCsvHeader(printer, attrNames);
             isFirst = false;
         }
-        printCsvRow(printer, attrNames, identity);
+        printCsvRow(printer, attrNames, entity);
        printer.flush();
     }
 
-    private void printCsvRow(CSVPrinter printer, List<String> attrNames, Identity identity) throws IOException {
+    private void printCsvRow(CSVPrinter printer, List<String> attrNames, Entity entity) throws IOException {
 
-        if (identity.getChange() == null && identity.getChange() == State.EQUAL) {
+        if (entity.getChange() == null && entity.getChange() == State.EQUAL) {
             return;
         }
         String[] row = new String[attrNames.size() + 1];
         attrNames.sort(String::compareTo);
 
-        row[0] = identity.getChange().getCharacter();
+        row[0] = entity.getChange().getCharacter();
         AtomicInteger i = new AtomicInteger();
         attrNames.forEach(name -> {
             StringBuilder valueString = new StringBuilder();
             // TODO
            // LOG.info("Attribute to be printed: "+ name);
-            Attribute attr = identity.getAttrs().get(name);
+            Attribute attr = entity.getAttrs().get(name);
             Map<Diff, Collection<Object>> attrValues = attr.getValues();
             if (attrValues==null){
 
@@ -102,7 +102,7 @@ public class CsvReportPrinter {
                 int count = 1;
                 objects.forEach(object -> {
 
-                    if (identity.getChange() == State.MODIFIED) {
+                    if (entity.getChange() == State.MODIFIED) {
                         valueString.append(diff.getCharacter());
                     }
 

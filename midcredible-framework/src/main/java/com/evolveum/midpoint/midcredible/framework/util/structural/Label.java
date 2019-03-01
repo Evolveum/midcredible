@@ -1,11 +1,11 @@
-package com.evolveum.midpoint.midcredible.framework.util.structural.Jdbc;
+package com.evolveum.midpoint.midcredible.framework.util.structural;
 
-public class Column {
+public class Label {
 
     private String name;
     private int index;
 
-    public Column(String name, int index) {
+    public Label(String name, int index) {
         this.name = name;
         this.index = index;
     }
@@ -23,10 +23,10 @@ public class Column {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Column column = (Column) o;
+        Label label = (Label) o;
 
-        if (index != column.index) return false;
-        return name != null ? name.equals(column.name) : column.name == null;
+        if (index != label.index) return false;
+        return name != null ? name.equals(label.name) : label.name == null;
     }
 
     @Override

@@ -2,20 +2,19 @@ package com.evolveum.midpoint.midcredible.framework.util.structural;
 
 import com.evolveum.midpoint.midcredible.framework.util.State;
 
-import java.util.List;
 import java.util.Map;
 
-public class Identity {
+public class Entity {
 
     private String uid;
     private State change;
     private Map<String, Attribute> attrs;
 
-    public Identity(String uid) {
+    public Entity(String uid) {
         this(uid, null);
     }
 
-    public Identity(String uid, Map<String, Attribute> attrs) {
+    public Entity(String uid, Map<String, Attribute> attrs) {
         this.uid = uid;
         this.attrs = attrs;
     }
