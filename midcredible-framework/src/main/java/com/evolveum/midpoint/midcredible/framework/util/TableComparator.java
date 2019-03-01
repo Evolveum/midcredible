@@ -16,7 +16,6 @@ import javax.script.ScriptException;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
@@ -49,20 +48,36 @@ public class TableComparator implements DatabaseComparable {
     }
 
     private void fetchDataFromProperties(String propertiesPath) throws IOException {
+        fetchDataFromProperties(propertiesPath, true);
+    }
 
-        FileInputStream input = new FileInputStream(propertiesPath);
-        Properties properties = new Properties();
-        properties.load(input);
-
+    private void fetchDataFromProperties(String propertiesPath, Boolean isFile) throws IOException {
         JdbcUtil util = new JdbcUtil();
-        oldResource = util.setupDataSource(properties.getProperty(JDBC_URL_OLD_RESOURCE), properties.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
-                , properties.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), properties.getProperty(JDBC_DRIVER));
+        if (isFile) {
+            FileInputStream input = new FileInputStream(propertiesPath);
+            Properties properties = new Properties();
+            properties.load(input);
 
-        newResource = util.setupDataSource(properties.getProperty(JDBC_URL_NEW_RESOURCE), properties.getProperty(DATABASE_USERNAME_NEW_RESOURCE)
-                , properties.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), properties.getProperty(JDBC_DRIVER));
 
-        comparatorPath = properties.getProperty(COMPARATOR_LOCATION);
-        ourCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
+            oldResource = util.setupDataSource(properties.getProperty(JDBC_URL_OLD_RESOURCE), properties.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
+                    , properties.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), properties.getProperty(JDBC_DRIVER));
+
+            newResource = util.setupDataSource(properties.getProperty(JDBC_URL_NEW_RESOURCE), properties.getProperty(DATABASE_USERNAME_NEW_RESOURCE)
+                    , properties.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), properties.getProperty(JDBC_DRIVER));
+
+            comparatorPath = properties.getProperty(COMPARATOR_LOCATION);
+            ourCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
+        } else {
+            oldResource = util.setupDataSource(System.getProperty(JDBC_URL_OLD_RESOURCE), System.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
+                    , System.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), System.getProperty(JDBC_DRIVER));
+
+            newResource = util.setupDataSource(System.getProperty(JDBC_URL_NEW_RESOURCE), System.getProperty(DATABASE_USERNAME_NEW_RESOURCE)
+                    , System.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), System.getProperty(JDBC_DRIVER));
+
+            comparatorPath = System.getProperty(COMPARATOR_LOCATION);
+            ourCsvFilePath = System.getProperty(OUT_CSV_FILE_LOCATION);
+        }
+
     }
 
 
@@ -138,7 +153,6 @@ public class TableComparator implements DatabaseComparable {
                         oldRow.setChanged(State.OLD_AFTER_NEW);
                         reportPrinter.printCsvRow(attributeList, oldRow);
                         iterateOld = true;
-                        //break;
                     }
                 }
 
@@ -156,9 +170,9 @@ public class TableComparator implements DatabaseComparable {
 
                             Entity difference = comparator.compareData(oldRow, newRow);
 
-                            if(State.MODIFIED == difference.getChange()){
+                            if (State.MODIFIED == difference.getChange()) {
 
-                            reportPrinter.printCsvRow(attributeList, difference);
+                                reportPrinter.printCsvRow(attributeList, difference);
                             }
 
                             iterateNew = true;
@@ -168,10 +182,9 @@ public class TableComparator implements DatabaseComparable {
                         break;
                     case OLD_BEFORE_NEW:
 
-                        // new table misses some rows obviously, therefore old row should be marked as "-"
                         oldRow.setChanged(State.OLD_BEFORE_NEW);
                         reportPrinter.printCsvRow(attributeList, oldRow);
-                        //printCsvRow(printer, "-", newRs);
+
                         iterateNew = false;
                         iterateOld = true;
                         break;
@@ -179,8 +192,7 @@ public class TableComparator implements DatabaseComparable {
 
                         newRow.setChanged(State.OLD_AFTER_NEW);
                         reportPrinter.printCsvRow(attributeList, newRow);
-                        // new table contains row that shouldn't be there, mark new as "+"
-                        //printCsvRow(printer, +", oldRs);
+
                         iterateNew = true;
                         iterateOld = false;
                         break;
@@ -227,14 +239,6 @@ public class TableComparator implements DatabaseComparable {
             entity.setAttrs(map);
         }
 
-//       entity.getAttrs().forEach((string,attribute)->{
-//           attribute.getValues().forEach((diff,object)->{
-//
-//              LOG.info("The attribute "+ string +" has the values "+ object.toString());
-//
-//           });
-//
-//       });
         return entity;
     }
 
