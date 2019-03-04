@@ -15,14 +15,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CsvReportPrinter {
+public class CsvReportPrinter implements Closeable {
 
     private static final char DEFAULT_MV_SEPARATOR = ';';
     private static final Logger LOG = LoggerFactory.getLogger(CsvReportPrinter.class);
     private Boolean isFirst = true;
     private CSVPrinter printer;
 
-    public CsvReportPrinter(String path) throws IOException {
+    // todo who fill close writer? CsvReportPrinter should be closeable [matus]
+
+    public CsvReportPrinter(String path) throws IOException {   // todo constructor should not throw exceptions [matus]
         try {
             printer = setupCsvPrinter(path);
         } catch (IOException e) {
@@ -31,6 +33,10 @@ public class CsvReportPrinter {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        // todo implement
+    }
 
     public CSVPrinter setupCsvPrinter(String path) throws IOException {
         Writer writer;
