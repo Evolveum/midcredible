@@ -4,6 +4,7 @@ import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,29 +22,28 @@ public class CsvReportPrinter {
     private Boolean isFirst = true;
     private CSVPrinter printer;
 
-    public CsvReportPrinter(String path) {
+    public CsvReportPrinter(String path) throws IOException {
         try {
             printer = setupCsvPrinter(path);
         } catch (IOException e) {
             LOG.error("Exception while creating a new file: " + e.getLocalizedMessage());
-            //TODO handle
+            throw e;
         }
     }
 
 
     public CSVPrinter setupCsvPrinter(String path) throws IOException {
-        Writer writer = null;
+        Writer writer;
         if (path != null && !path.isEmpty()) {
 
             File file = new File(path);
             writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
-
         } else {
             writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
         }
 
         CSVFormat csvFormat = setupCsvFormat();
-
+        csvFormat= csvFormat.withQuoteMode(QuoteMode.ALL);
         return csvFormat.print(writer);
     }
 
@@ -52,8 +52,7 @@ public class CsvReportPrinter {
     }
 
     private void printCsvHeader(CSVPrinter printer, List<String> columnNames) throws IOException {
-      //TODO set to debug
-        LOG.info("Printing header based on the following column names+ "+ columnNames.toString());
+        LOG.debug("Printing header based on the following column names+ "+ columnNames.toString());
         columnNames.sort(String::compareTo);
         int columns = columnNames.size();
         String[] header = new String[columns + 1];
@@ -88,8 +87,7 @@ public class CsvReportPrinter {
         AtomicInteger i = new AtomicInteger();
         attrNames.forEach(name -> {
             StringBuilder valueString = new StringBuilder();
-            // TODO
-           // LOG.info("Attribute to be printed: "+ name);
+
             Attribute attr = entity.getAttrs().get(name);
             Map<Diff, Collection<Object>> attrValues = attr.getValues();
             if (attrValues==null){

@@ -6,6 +6,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -22,7 +23,7 @@ public class ObjectComparisionTest extends ButlerBaseTest {
     }
 
     @Test
-    public void testCompareAllResourceJdbc() throws SQLException, IOException {
+    public void testCompareAllResourceJdbc() throws Exception {
         TableComparator tableCompare = new TableComparator(PROPERTIES);
         tableCompare.compare(true);
 

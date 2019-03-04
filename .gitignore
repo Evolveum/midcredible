@@ -33,3 +33,6 @@ target
 
 #test properties
 configuration_test.properties
+
+# test executable impl
+midcredible-impl/

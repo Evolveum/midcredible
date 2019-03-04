@@ -11,8 +11,9 @@ public interface Comparator {
 
     String buildIdentifier(Map<Label, Object> oldRow);
 
-    State compareEntity(Entity oldEntity, Entity newEntity);
+    State compareEntity(String oldEntityId, String newEntityId);
 
     Entity compareData(Entity oldEntity, Entity newEntity);
 
 }
+// Abstract comparatorBase

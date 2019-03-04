@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
-public class TableComparator implements DatabaseComparable {
+public class TableComparator implements DatabaseComparison {
 
     private DataSource newResource;
     private DataSource oldResource;
@@ -28,6 +28,11 @@ public class TableComparator implements DatabaseComparable {
     private String ourCsvFilePath;
 
     private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
+
+    public TableComparator() throws IOException {
+
+        this(null, null);
+    }
 
     public TableComparator(String properties) throws IOException {
 
@@ -42,9 +47,18 @@ public class TableComparator implements DatabaseComparable {
             this.newResource = newResource.getClient().getDataSource();
         } else {
 
-            fetchDataFromProperties(properties);
+            if(properties!=null && !properties.isEmpty()){
+                fetchDataFromProperties(properties);
+            }else {
+                fetchDataFromProperties();
+            }
+
         }
 
+    }
+
+    private void fetchDataFromProperties() throws IOException {
+        fetchDataFromProperties(null, false);
     }
 
     private void fetchDataFromProperties(String propertiesPath) throws IOException {
@@ -68,6 +82,13 @@ public class TableComparator implements DatabaseComparable {
             comparatorPath = properties.getProperty(COMPARATOR_LOCATION);
             ourCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
         } else {
+
+            String propertyPath =  System.getProperty(PROPERTIES_FILE_LOCATION);
+
+            if ( propertyPath != null && !propertyPath.isEmpty()){
+                fetchDataFromProperties(propertyPath, true);
+            }else {
+
             oldResource = util.setupDataSource(System.getProperty(JDBC_URL_OLD_RESOURCE), System.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
                     , System.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), System.getProperty(JDBC_DRIVER));
 
@@ -76,30 +97,33 @@ public class TableComparator implements DatabaseComparable {
 
             comparatorPath = System.getProperty(COMPARATOR_LOCATION);
             ourCsvFilePath = System.getProperty(OUT_CSV_FILE_LOCATION);
+            }
         }
 
     }
 
 
-    public void compare(Boolean compareAttributes) throws SQLException {
+    public void compare(Boolean compareAttributes) throws SQLException, InstantiationException, IllegalAccessException, ScriptException, IOException {
         try {
             executeComparison(setupComparator(), compareAttributes);
         } catch (IOException e) {
-
-            e.printStackTrace();
+            LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
+            throw e;
         } catch (ScriptException e) {
             LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
-            e.printStackTrace();
+            throw e;
         } catch (IllegalAccessException e) {
             LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
-            e.printStackTrace();
+            throw e;
         } catch (InstantiationException e) {
             LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
-            e.printStackTrace();
+            throw e;
         } finally {
 
-            //TODO clean up
+            LOG.info("Closing connection to both data sources: ");
 
+            newResource.getConnection().close();
+            oldResource.getConnection().close();
         }
     }
 
@@ -127,7 +151,6 @@ public class TableComparator implements DatabaseComparable {
 
         } catch (SQLException e) {
             LOG.error("An error has occurred: " + e.getLocalizedMessage());
-            //TODO
             throw e;
         }
 
@@ -136,13 +159,15 @@ public class TableComparator implements DatabaseComparable {
         Entity newRow;
         boolean iterateNew = true;
         boolean iterateOld = true;
-
+        Integer noOfRows=0;
         try {
             while (true) {
 
                 if (iterateOld) {
                     if (oldRs.next()) {
+
                         oldRow = createIdentityFromRow(oldRs, comparator.buildIdentifier(createMapFromRow(oldRs)));
+
                     } else {
                         break;
                     }
@@ -158,14 +183,14 @@ public class TableComparator implements DatabaseComparable {
 
                 newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
 
-                State state = comparator.compareEntity(oldRow, newRow);
+                State state = comparator.compareEntity(oldRow.getId(), newRow.getId());
                 switch (state) {
                     case EQUAL:
                         if (!compareAttributes) {
 
                             iterateNew = true;
                             iterateOld = true;
-                            continue;
+                            break;
                         } else {
 
                             Entity difference = comparator.compareData(oldRow, newRow);
@@ -197,19 +222,21 @@ public class TableComparator implements DatabaseComparable {
                         iterateOld = false;
                         break;
                 }
+                noOfRows++;
+                System.out.println("Processed number of rows: "+noOfRows);
             }
 
             while (newRs.next()) {
                 newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
                 newRow.setChanged(State.NEW_AFTER_OLD);
                 reportPrinter.printCsvRow(attributeList, newRow);
+                noOfRows++;
+                System.out.println("Processed number of rows: "+noOfRows);
             }
         } catch (SQLException e) {
-            // TODO
             LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
             throw e;
         } catch (IOException e) {
-            //TODO
             LOG.error("IO exception white iterating trough result set " + e.getLocalizedMessage());
             throw e;
         }
@@ -217,8 +244,7 @@ public class TableComparator implements DatabaseComparable {
 
     private Entity createIdentityFromRow(ResultSet rs, String identifier) throws SQLException {
 
-        //TODO change to trace
-        LOG.info("Creating entity with the id: " + identifier);
+        LOG.trace("Creating entity with the id: " + identifier);
 
         Entity entity = new Entity(identifier, new HashMap<>());
         ResultSetMetaData md = rs.getMetaData();
@@ -231,9 +257,8 @@ public class TableComparator implements DatabaseComparable {
             Attribute attr = new Attribute(colName);
             Object object = rs.getObject(i);
             attr.setInitialSingleValue(object);
-            //TODO change to trace
 
-            LOG.info("Setting up attribute: " + colName + " with value: " + object.toString());
+            LOG.trace("Setting up attribute: " + colName + " with value: " + object.toString());
             Map map = entity.getAttrs();
             map.put(colName, attr);
             entity.setAttrs(map);

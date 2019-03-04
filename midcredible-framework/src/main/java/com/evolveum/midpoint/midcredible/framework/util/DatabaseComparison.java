@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
-import com.evolveum.midpoint.midcredible.framework.util.Comparable;
-
-public interface DatabaseComparable extends Comparable {
+public interface DatabaseComparison extends ComparisonParent {
 
     String JDBC_DRIVER = "jdbc.driver";
 

@@ -26,6 +26,7 @@
     <modules>
         <module>midcredible-framework</module>
         <module>test-project-example</module>
+        <module>midcredible-impl</module>
     </modules>
 
 </project>

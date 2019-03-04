@@ -9,8 +9,6 @@ import java.util.Map;
 
 public class Attribute {
 
-    // TODO
-
     private String name;
     private Map<Diff, Collection<Object>> values;
 

@@ -26,14 +26,10 @@ class SimpleComparator implements Comparator {
 
         return null
     }
-
     @Override
-    State compareEntity(Entity oldEntity, Entity newEntity) {
+    State compareEntity(String oldEntityId, String newEntityId) {
 
-        String oldUid = oldEntity.getId()
-        String newUid = newEntity.getId()
-
-        Integer id = oldUid <=> newUid
+        Integer id = oldEntityId <=> newEntityId
 
         if (id == 0) {
 
@@ -98,7 +94,6 @@ class SimpleComparator implements Comparator {
             Map<String, Attribute> map = diffIdentity.getAttrs()
             map.put(attrName, diffAttr)
             diffIdentity.setAttrs(map)
-            // TODO implement compare directly in attr class ???
         }
 
         if (hasChange) {
