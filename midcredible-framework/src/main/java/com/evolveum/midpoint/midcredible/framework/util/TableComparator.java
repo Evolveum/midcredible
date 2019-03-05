@@ -82,8 +82,9 @@ public class TableComparator implements DatabaseComparison {
             comparatorPath = properties.getProperty(COMPARATOR_LOCATION);
             ourCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
         } else {
-
             String propertyPath =  System.getProperty(PROPERTIES_FILE_LOCATION);
+
+
 
             if ( propertyPath != null && !propertyPath.isEmpty()){
                 fetchDataFromProperties(propertyPath, true);
