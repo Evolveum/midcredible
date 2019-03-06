@@ -94,7 +94,7 @@ public class LdapImportWorker implements Runnable {
                 jdbc.batchUpdate("insert into " + table + " (dn, worker, entry) values (?,?,?)", rows);
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex); // todo handle exception
+            throw new LdapComparatorException("Ldap import worker failed, reason: " + ex.getMessage(), ex);
         } finally {
             printStatus(count);
         }

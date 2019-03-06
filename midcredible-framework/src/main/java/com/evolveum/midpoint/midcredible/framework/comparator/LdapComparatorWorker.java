@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,6 +38,8 @@ public class LdapComparatorWorker implements Runnable {
 
     private Map<String, Column> columnMap;
 
+    private List<String> columnList;
+
     private boolean canceled;
 
     public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer,
@@ -46,6 +49,8 @@ public class LdapComparatorWorker implements Runnable {
         this.printer = printer;
         this.comparator = comparator;
         this.columnMap = columnMap;
+
+        buildColumnList();
     }
 
     public void cancel() {
@@ -128,7 +133,7 @@ public class LdapComparatorWorker implements Runnable {
                 printCsvRow(printer, RowState.OLD_BEFORE_NEW, newRow);
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex); //todo error handling
+            throw new LdapComparatorException("Ldap comparator worker failed, reason: " + ex.getMessage(), ex);
         }
     }
 
@@ -171,12 +176,11 @@ public class LdapComparatorWorker implements Runnable {
         Entity entity = new Entity(null, attributes);
         entity.setChanged(getState(RowState.EQUAL, changed));
 
-//        printer.printCsvRow(comparator.getReportedAttributes(), entity);
+        printer.printCsvRow(columnList, entity);
     }
 
     private void printCsvRow(CsvReportPrinter printer, RowState rowState, Map<Column, Set<Object>> entry) throws IOException {
         LOG.info("Printing {}", rowState);
-        if (1 == 1) return;
 
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
@@ -199,7 +203,7 @@ public class LdapComparatorWorker implements Runnable {
         Entity entity = new Entity(null, attributes);
         entity.setChanged(getState(rowState, true));
 
-//        printer.printCsvRow(comparator.getReportedAttributes(), entity);
+        printer.printCsvRow(columnList, entity);
     }
 
     private State getState(RowState state, boolean changed) {
@@ -232,7 +236,8 @@ public class LdapComparatorWorker implements Runnable {
             LdifEntry ldifEntry = entries.get(0);
             Entry entry = ldifEntry.getEntry();
 
-            result.put(columnMap.get(LdapDbComparator.DN_ATTRIBUTE), new HashSet<>(Arrays.asList(entry.getDn().getNormName())));
+            result.put(columnMap.get(LdapDbComparator.DN_ATTRIBUTE),
+                    new HashSet<>(Arrays.asList(entry.getDn().getNormName())));
 
             for (Attribute attr : entry.getAttributes()) {
                 Set<Object> values = new HashSet<>();
@@ -241,9 +246,19 @@ public class LdapComparatorWorker implements Runnable {
                 result.put(columnMap.get(attr.getId()), values);
             }
         } catch (IOException | LdapLdifException ex) {
-            throw new RuntimeException(ex); // todo better handling
+            throw new LdapComparatorException("Couldn't create LDAP entry from LDIF stored in DB, reason: "
+                    + ex.getMessage(), ex);
         }
 
         return result;
+    }
+
+    private void buildColumnList() {
+        List<Column> list = new ArrayList<>();
+        list.addAll(columnMap.values());
+
+        Collections.sort(list, (o1, o2) -> o1.getIndex() - o2.getIndex());
+
+        columnList = new ArrayList<>(list.stream().map(c -> c.getName()).collect(Collectors.toList()));
     }
 }
