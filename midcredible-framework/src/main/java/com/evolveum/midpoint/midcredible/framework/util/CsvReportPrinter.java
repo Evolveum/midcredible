@@ -55,7 +55,7 @@ public class CsvReportPrinter implements Closeable {
 
             e.printStackTrace();
         }
-      }
+    }
 
     private CSVFormat setupCsvFormat() {
         return CSVFormat.DEFAULT;
@@ -102,32 +102,29 @@ public class CsvReportPrinter implements Closeable {
             Map<Diff, Collection<Object>> attrValues = attr.getValues();
             if (attrValues == null) {
 
-                LOG.error("Attribute not present in attribute list");
-            }
+                LOG.debug("Attribute value not present in attribute list for attribute: ", name);
+            } else {
+                attrValues.forEach((diff, objects) -> {
+                    int count = 1;
+                    objects.forEach(object -> {
 
+                        if (entity.getChange() == State.MODIFIED) {
+                            valueString.append(diff.getCharacter());
+                        }
 
-            attrValues.forEach((diff, objects) -> {
-                int count = 1;
-                objects.forEach(object -> {
-
-                    if (entity.getChange() == State.MODIFIED) {
-                        valueString.append(diff.getCharacter());
-                    }
-
-                    valueString.append(object != null ? object.toString() : "[null]");
-                    if (count < objects.size()) {
-                        valueString.append(DEFAULT_MV_SEPARATOR);
-                    }
+                        valueString.append(object != null ? object.toString() : "[null]");
+                        if (count < objects.size()) {
+                            valueString.append(DEFAULT_MV_SEPARATOR);
+                        }
+                    });
                 });
-            });
-
+            }
+            
             row[i.get() + 1] = valueString != null ? valueString.toString() : "[null]";
             i.getAndIncrement();
         });
 
-        for (int j = 0; j < row.length; j++) {
-        }
-        LOG.trace("Row produced: "+row.toString());
+        LOG.trace("Row produced: " + row.toString());
         printer.printRecord(row);
     }
 }
