@@ -1,25 +1,18 @@
 package com.evolveum.midpoint.midcredible.framework.comparator;
 
 import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
+import com.evolveum.midpoint.midcredible.framework.util.GroovyUtils;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
-import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.h2.Driver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,7 +91,8 @@ public class LdapDbComparator {
              LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
 
             LOG.info("Compiling comparator groovy script");
-            comparator = setupComparator();
+            comparator = GroovyUtils.createTypeInstance(LdapComparator.class,
+                    properties.getProperty(PROP_COMPARATOR_SCRIPT));
 
             LOG.info("Setting up csv printer");
             printer.setupCsvPrinter(properties.getProperty(PROP_CSV_PATH));
@@ -143,7 +137,7 @@ public class LdapDbComparator {
 
             LOG.info("Done");
         } catch (Exception ex) {
-            throw new RuntimeException(ex); // todo handle
+            throw new LdapComparatorException("Ldap comparator failed, reason: " + ex.getMessage(), ex);
         } finally {
             executor.shutdown();
 
@@ -231,36 +225,6 @@ public class LdapDbComparator {
         con.bind(username, password);
 
         return con;
-    }
-
-    private LdapComparator setupComparator()
-            throws IOException, ScriptException, IllegalAccessException, InstantiationException {
-
-        File file = new File(properties.getProperty(PROP_COMPARATOR_SCRIPT));
-        String script = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-
-        ScriptEngineManager engineManager = new ScriptEngineManager();
-        ScriptEngine engine = engineManager.getEngineByName("groovy");
-
-        GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl) engine;
-        gse.compile(script);
-
-        Class<? extends LdapComparator> type = null;
-
-        GroovyClassLoader gcl = gse.getClassLoader();
-        for (Class c : gcl.getLoadedClasses()) {
-            if (LdapComparator.class.isAssignableFrom(c)) {
-                type = c;
-                break;
-            }
-        }
-
-        if (type == null) {
-            throw new IllegalStateException("Couldn't find comparator class that is assignable from LdapComparator "
-                    + ", available classes: " + Arrays.toString(gcl.getLoadedClasses()));
-        }
-
-        return type.newInstance();
     }
 
     private Map<String, Column> buildColumnMap(Set<String> columns) {

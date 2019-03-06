@@ -280,32 +280,7 @@ public class TableComparator implements DatabaseComparison {
     }
 
     private Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException {
-        File file = new File(comparatorPath);
-        String script = FileUtils.readFileToString(file, "utf-8");
-
-        ScriptEngineManager engineManager = new ScriptEngineManager();
-        ScriptEngine engine = engineManager.getEngineByName("groovy");
-
-        GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl) engine;
-        gse.compile(script);
-
-        Class<? extends Comparator> type = null;
-
-        GroovyClassLoader gcl = gse.getClassLoader();
-        for (Class c : gcl.getLoadedClasses()) {
-            if (Comparator.class.isAssignableFrom(c)) {
-                type = c;
-                break;
-            }
-        }
-
-        if (type == null) {
-            throw new IllegalStateException("Couldn't find comparatorPath class that is assignable from Comparator "
-                    + ", available classes: " + Arrays.toString(gcl.getLoadedClasses()));
-        }
-
-        return type.newInstance();
-    }
+        return GroovyUtils.createTypeInstance(Comparator.class, comparatorPath);    }
 
     private ResultSet createResultSet(String query, DataSource ds) throws SQLException {
         Connection con = ds.getConnection();
