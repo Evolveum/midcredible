@@ -9,6 +9,8 @@ public interface Comparator {
 
     String query();
 
+    String query(Integer resultSet);
+
     String buildIdentifier(Map<Label, Object> oldRow);
 
     State compareEntity(String oldEntityId, String newEntityId);

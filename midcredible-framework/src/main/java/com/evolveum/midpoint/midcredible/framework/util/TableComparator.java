@@ -143,8 +143,8 @@ public class TableComparator implements DatabaseComparison {
         List attributeList = new ArrayList();
 
         try {
-            oldRs = createResultSet(comparator.query(), oldResource);
-            newRs = createResultSet(comparator.query(), newResource);
+            oldRs = createResultSet(comparator.query(1), oldResource);
+            newRs = createResultSet(comparator.query(2), newResource);
             md = oldRs.getMetaData();
 
             int columns = md.getColumnCount();

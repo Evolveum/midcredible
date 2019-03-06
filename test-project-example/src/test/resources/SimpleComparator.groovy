@@ -16,6 +16,11 @@ class SimpleComparator implements Comparator {
     }
 
     @Override
+    String query(Integer resultSet) {
+       return query()
+    }
+
+    @Override
     String buildIdentifier(Map<Label, Object> atomicEntity) {
 
         for (Label l : atomicEntity.keySet()) {
