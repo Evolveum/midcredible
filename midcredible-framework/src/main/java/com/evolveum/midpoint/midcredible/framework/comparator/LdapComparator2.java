@@ -3,6 +3,7 @@ package com.evolveum.midpoint.midcredible.framework.comparator;
 import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.h2.Driver;
@@ -36,17 +37,19 @@ public class LdapComparator2 {
         executor = Executors.newFixedThreadPool(threadPoolSize);
 
         try (HikariDataSource ds = createDataSource(workerCount);
-             CsvReportPrinter printer = new CsvReportPrinter("./target/out.csv");           // todo fix csv path
-             LdapConnection oldCon = setupConnection("host", 1389, false);
-             LdapConnection newCon = setupConnection("host", 2389, false)) {
+             CsvReportPrinter printer = new CsvReportPrinter();           // todo fix csv path
+             LdapConnection oldCon = setupConnection("localhost", 1389, false, "cn=admin,dc=example,dc=com", "admin");
+             LdapConnection newCon = setupConnection("localhost", 2389, false, "cn=admin,dc=example,dc=com", "admin")) {
+
+            printer.setupCsvPrinter("./target/out.csv");
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
 
             setupH2(jdbc);
 
             // fill in DB table
-            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, "old_data", oldCon);
-            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, "new_data", newCon);
+            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, "old_data", oldCon, comparator);
+            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, "new_data", newCon, comparator);
 
             Future importOldFuture = executor.submit(importOldWorker);
             Future importNewFuture = executor.submit(importNewWorker);
@@ -124,7 +127,12 @@ public class LdapComparator2 {
         return data;
     }
 
-    private LdapConnection setupConnection(String host, int port, boolean secured) {
-        return new LdapNetworkConnection(host, port, secured);
+    private LdapConnection setupConnection(String host, int port, boolean secured, String username, String password)
+            throws LdapException {
+
+        LdapConnection con = new LdapNetworkConnection(host, port, secured);
+        con.bind(username, password);
+
+        return con;
     }
 }

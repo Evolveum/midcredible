@@ -2,6 +2,8 @@ package com.evolveum.midpoint.midcredible.framework.comparator;
 
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.filter.ExprNode;
+import org.apache.directory.api.ldap.model.filter.ObjectClassNode;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.ldif.LdifUtils;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
@@ -29,9 +31,8 @@ public class FreakinComparatorImpl implements FreakinComparator {
         SearchRequest req = new SearchRequestImpl();
         req.setScope(SearchScope.SUBTREE);
         req.addAttributes("*");
-        req.setTimeLimit(5);
-        req.setBase(new Dn("ou=system"));
-        req.setFilter("*");
+        req.setBase(new Dn("dc=example,dc=com"));
+        req.setFilter("(objectClass=*)");
 
         return req;
     }

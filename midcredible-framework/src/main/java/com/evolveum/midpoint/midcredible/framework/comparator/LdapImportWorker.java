@@ -2,12 +2,8 @@ package com.evolveum.midpoint.midcredible.framework.comparator;
 
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
-import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
-import org.apache.directory.api.ldap.model.message.SearchScope;
-import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -28,13 +24,16 @@ public class LdapImportWorker implements Runnable {
 
     private LdapConnection ldapConnection;
 
+    private FreakinComparator comparator;
+
     private boolean canceled;
 
-    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection) {
+    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection, FreakinComparator comparator) {
         this.workerCount = workerCount;
         this.jdbc = jdbc;
         this.table = table;
         this.ldapConnection = ldapConnection;
+        this.comparator = comparator;
     }
 
     public void cancel() {
@@ -43,14 +42,14 @@ public class LdapImportWorker implements Runnable {
 
     @Override
     public void run() {
+        int count = 0;
         try {
             List<Object[]> rows = new ArrayList<>();
 
             // handle in separate thread
-            SearchRequest req = buildSearchRequest(); // todo handle pagedResults or vlv using while cycle
+            SearchRequest req = comparator.buildSearchRequest();
             SearchCursor cur = ldapConnection.search(req);
-            cur.first();
-            while (cur.available()) {
+            while (cur.next()) {
                 if (canceled) {
                     break;
                 }
@@ -68,22 +67,13 @@ public class LdapImportWorker implements Runnable {
                     jdbc.batchUpdate("insert into " + table + " (dn, worker, entry) values (?,?,?)", rows);
                     rows.clear();
                 }
+
+                count++;
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex); // todo handle exception
+        } finally {
+            System.out.println("Imported " + count + " entries to " + table);
         }
-    }
-
-    // todo move to comparator interface
-    private SearchRequest buildSearchRequest() throws LdapException {
-        SearchRequest req = new SearchRequestImpl();
-        req.setScope(SearchScope.SUBTREE);
-        req.addAttributes("*");
-        req.setTimeLimit(0);
-        req.setBase(new Dn("ou=system"));
-        req.setFilter("*");
-
-
-        return req;
     }
 }
