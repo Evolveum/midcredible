@@ -24,21 +24,23 @@ public class CsvReportPrinter implements Closeable {
 
     // todo who fill close writer? CsvReportPrinter should be closeable [matus]
 
-    public CsvReportPrinter(String path) {
-        setupCsvPrinter(path);
+    public CsvReportPrinter() {
     }
 
     @Override
     public void close() throws IOException {
-        printer.close();
+        if (printer != null) {
+            printer.close();
+        }
     }
 
-    private void setupCsvPrinter(String path) {
+    public void setupCsvPrinter(String path) {
         Writer writer;
         try {
             if (path != null && !path.isEmpty()) {
-
                 File file = new File(path);
+                file.createNewFile();
+
                 writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
             } else {
                 writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);

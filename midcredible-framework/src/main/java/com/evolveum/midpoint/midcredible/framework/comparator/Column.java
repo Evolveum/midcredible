@@ -5,37 +5,43 @@ package com.evolveum.midpoint.midcredible.framework.comparator;
  */
 public class Column {
 
-	private String name;
-	private int index;
+    private String name;
+    private int index = -1;
 
-	public Column(String name, int index) {
-		this.name = name;
-		this.index = index;
-	}
+    public Column(String name) {
+        this.name = name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public Column(String name, int index) {
+        this.name = name;
+        this.index = index;
+    }
 
-	public int getIndex() {
-		return index;
-	}
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    public int getIndex() {
+        return index;
+    }
 
-		Column column = (Column) o;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		if (index != column.index) return false;
-		return name != null ? name.equals(column.name) : column.name == null;
-	}
+        Column column = (Column) o;
 
-	@Override
-	public int hashCode() {
-		int result = name != null ? name.hashCode() : 0;
-		result = 31 * result + index;
-		return result;
-	}
+        return name != null ? name.equals(column.name) : column.name == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return name != null ? name.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return name + '(' + index + ')';
+    }
 }

@@ -135,7 +135,8 @@ public class TableComparator implements DatabaseComparison {
     }
 
     protected void executeComparison(Comparator comparator, Boolean compareAttributes) throws SQLException, IOException {
-        CsvReportPrinter reportPrinter = new CsvReportPrinter(outCsvFilePath);
+        CsvReportPrinter reportPrinter = new CsvReportPrinter();
+        reportPrinter.setupCsvPrinter(outCsvFilePath);
 
         ResultSet oldRs;
         ResultSet newRs;

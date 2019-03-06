@@ -2,15 +2,12 @@ package com.evolveum.midpoint.midcredible.framework.util.structural;
 
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Attribute {
 
     private String name;
-    private Map<Diff, Collection<Object>> values;
+    private Map<Diff, Collection<Object>> values = new HashMap<>();
 
     public Attribute(String name) {
         this.name = name;
@@ -30,17 +27,11 @@ public class Attribute {
 
 
     public void setInitialSingleValue(Object value) {
-
-        Map<Diff, Collection<Object>> valueMap = new HashMap<>();
-        Collection val = new ArrayList();
-        val.add(value);
-
-      valueMap.put(Diff.NONE, val);
-        values = valueMap;
+        this.values.put(Diff.NONE, Arrays.asList(value));
     }
 
-    public void setInitialMutliValue(Object values) {
-        //TODO
+    public void setInitialMultiValue(List<Object> values) {
+        this.values.put(Diff.NONE, values);
     }
 
 
