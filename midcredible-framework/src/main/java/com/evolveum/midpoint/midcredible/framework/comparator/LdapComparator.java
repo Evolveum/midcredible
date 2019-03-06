@@ -12,6 +12,7 @@ import java.util.Set;
  */
 public interface LdapComparator {
 
+    // todo how to support simple paging, or vlv
     SearchRequest buildSearchRequest() throws LdapException;
 
     RowState compareIdentity(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry);

@@ -147,27 +147,42 @@ public class LdapComparatorWorker implements Runnable {
     }
 
     private void printCsvRow(CsvReportPrinter printer, Map<Column, List<ColumnValue>> changes) throws IOException {
+        if (changes == null) {
+            throw new LdapComparatorException("Changes map must not be null");
+        }
+
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
         boolean changed = false;
         for (Map.Entry<Column, List<ColumnValue>> entry : changes.entrySet()) {
             if (entry.getValue() == null || entry.getValue().isEmpty()) {
-
-            }
-        }
-
-        for (List<ColumnValue> values : changes.values()) {
-            if (values == null) {
                 continue;
             }
 
-            for (ColumnValue value : values) {
-                if (!ValueState.EQUAL.equals(value.getState())) {
-                    changed = true;
+            com.evolveum.midpoint.midcredible.framework.util.structural.Attribute attr =
+                    new com.evolveum.midpoint.midcredible.framework.util.structural.Attribute(entry.getKey().getName());
+
+            for (ColumnValue value : entry.getValue()) {
+                if (value.getState() == null) {
+                    continue;
                 }
 
-                // todo transform to entry for printer
+                switch (value.getState()) {
+                    case EQUAL:
+                        changed = true;
+
+                        attr.addValue(Diff.EQUALS, value.getValue());
+                        break;
+                    case ADDED:
+                        attr.addValue(Diff.ADD, value.getValue());
+                        break;
+                    case REMOVED:
+                        attr.addValue(Diff.REMOVE, value.getValue());
+                        break;
+                }
             }
+
+            attributes.put(attr.getName(), attr);
         }
 
         Entity entity = new Entity(null, attributes);

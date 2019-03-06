@@ -49,6 +49,10 @@ class SimpleLdapComparator implements LdapComparator {
 
     @Override
     Map<Column, List<ColumnValue>> compareData(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry) {
-        return null    // todo implement
+        Map<Column, List<ColumnValue>> changes = new HashMap<>();
+
+        // todo implement
+
+        return changes
     }
 }
