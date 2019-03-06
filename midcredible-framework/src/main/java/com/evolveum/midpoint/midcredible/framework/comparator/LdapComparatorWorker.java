@@ -147,9 +147,6 @@ public class LdapComparatorWorker implements Runnable {
     }
 
     private void printCsvRow(CsvReportPrinter printer, Map<Column, List<ColumnValue>> changes) throws IOException {
-        LOG.info("Printing EQUAL");
-        if (1 == 1) return;
-
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
         boolean changed = false;
@@ -180,8 +177,6 @@ public class LdapComparatorWorker implements Runnable {
     }
 
     private void printCsvRow(CsvReportPrinter printer, RowState rowState, Map<Column, Set<Object>> entry) throws IOException {
-        LOG.info("Printing {}", rowState);
-
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
         for (Map.Entry<Column, Set<Object>> e : entry.entrySet()) {
@@ -257,7 +252,7 @@ public class LdapComparatorWorker implements Runnable {
         List<Column> list = new ArrayList<>();
         list.addAll(columnMap.values());
 
-        Collections.sort(list, (o1, o2) -> o1.getIndex() - o2.getIndex());
+        Collections.sort(list, Comparator.comparingInt(c -> c.getIndex()));
 
         columnList = new ArrayList<>(list.stream().map(c -> c.getName()).collect(Collectors.toList()));
     }

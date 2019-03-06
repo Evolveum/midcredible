@@ -59,6 +59,8 @@ public class LdapDbComparator {
 
     private static final String NEW_TABLE_NAME = "new_data";
 
+    private static final long LDAP_CONNECTION_TIMEOUT = 10000L;
+
     static final String DN_ATTRIBUTE = "dn";
 
     static final long PRINTOUT_TIME_FREQUENCY = 5000;
@@ -221,7 +223,9 @@ public class LdapDbComparator {
                 break;
         }
 
+        LOG.info("Creating LDAP connection for {} dataset", dataset);
         LdapConnection con = new LdapNetworkConnection(host, port, secured);
+        con.setTimeOut(LDAP_CONNECTION_TIMEOUT);
         con.bind(username, password);
 
         return con;
