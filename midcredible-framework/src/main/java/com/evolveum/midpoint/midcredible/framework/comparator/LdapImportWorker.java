@@ -5,6 +5,8 @@ import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.ldap.client.api.LdapConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import java.util.List;
  * Created by Viliam Repan (lazyman).
  */
 public class LdapImportWorker implements Runnable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LdapImportWorker.class);
 
     private static final int JDBC_BATCH_SIZE = 200;
 
@@ -42,6 +46,7 @@ public class LdapImportWorker implements Runnable {
 
     @Override
     public void run() {
+        long lastPrintoutTime = 0;
         int count = 0;
         try {
             List<Object[]> rows = new ArrayList<>();
@@ -69,11 +74,23 @@ public class LdapImportWorker implements Runnable {
                 }
 
                 count++;
+
+                if (lastPrintoutTime + 5000 < System.currentTimeMillis()) { // todo constant for printout
+                    printStatus(count);
+                }
+            }
+
+            if (!rows.isEmpty()) {
+                jdbc.batchUpdate("insert into " + table + " (dn, worker, entry) values (?,?,?)", rows);
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex); // todo handle exception
         } finally {
-            System.out.println("Imported " + count + " entries to " + table);
+            printStatus(count);
         }
+    }
+
+    private void printStatus(int count) {
+        LOG.info("Processed {} entries to {}", count, table);
     }
 }

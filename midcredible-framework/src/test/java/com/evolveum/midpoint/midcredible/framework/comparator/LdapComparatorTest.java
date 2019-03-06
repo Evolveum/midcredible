@@ -4,7 +4,7 @@ import org.testng.annotations.Test;
 
 import java.util.Properties;
 
-import static com.evolveum.midpoint.midcredible.framework.comparator.LdapComparator2.*;
+import static com.evolveum.midpoint.midcredible.framework.comparator.LdapDbComparator.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -31,6 +31,8 @@ public class LdapComparatorTest {
 
         props.setProperty(PROP_COMPARATOR_SCRIPT, "./src/test/resources/SimpleLdapComparator.groovy");
 
-        new LdapComparator2(props).execute();
+        props.setProperty(PROP_WORKER_COUNT, "1");
+
+        new LdapDbComparator(props).execute();
     }
 }
