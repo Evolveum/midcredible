@@ -6,6 +6,7 @@ import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.name.Dn;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,11 @@ import java.util.Map;
  * Created by Viliam Repan (lazyman).
  */
 public class FreakinComparatorImpl implements FreakinComparator {
+
+    @Override
+    public List<String> getReportedAttributes() {
+        return Arrays.asList("dn", "givenName", "familyName");
+    }
 
     @Override
     public SearchRequest buildSearchRequest() throws LdapException {
@@ -27,12 +33,12 @@ public class FreakinComparatorImpl implements FreakinComparator {
     }
 
     @Override
-    public RowState compareIdentity(Map<Column, Object> old, Map<Column, Object> entry) {
+    public RowState compareIdentity(Map<Column, List<Object>> old, Map<Column, List<Object>> entry) {
         return null;    // todo compare dn
     }
 
     @Override
-    public Map<Column, List<ColumnValue>> compareData(Map<Column, Object> old, Map<Column, Object> entry) {
+    public Map<Column, List<ColumnValue>> compareData(Map<Column, List<Object>> old, Map<Column, List<Object>> entry) {
         return null;    // todo implement
     }
 }

@@ -11,9 +11,11 @@ import java.util.Map;
  */
 public interface FreakinComparator {
 
+    List<String> getReportedAttributes();
+
     SearchRequest buildSearchRequest() throws LdapException;
 
-    RowState compareIdentity(Map<Column, Object> old, Map<Column, Object> entry);
+    RowState compareIdentity(Map<Column, List<Object>> old, Map<Column, List<Object>> entry);
 
-    Map<Column, List<ColumnValue>> compareData(Map<Column, Object> old, Map<Column, Object> entry);
+    Map<Column, List<ColumnValue>> compareData(Map<Column, List<Object>> old, Map<Column, List<Object>> entry);
 }
