@@ -10,6 +10,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -20,6 +22,8 @@ import java.util.concurrent.Future;
 public class LdapComparator2 {
 
     private ExecutorService executor;
+
+    private FreakinComparator comparator = new FreakinComparatorImpl(); // todo as parameter
 
     public static void main(String[] args) {
         new LdapComparator2().execute();
@@ -47,12 +51,23 @@ public class LdapComparator2 {
             Future importOldFuture = executor.submit(importOldWorker);
             Future importNewFuture = executor.submit(importNewWorker);
 
+            // wait for import workers to finish
             importOldFuture.get();
             importNewFuture.get();
 
-            // todo compare tables
+            List<LdapComparatorWorker> compareWorkers = new ArrayList<>();
+            List<Future> comparatorFutures = new ArrayList<>();
+            for (int i = 0; i < workerCount; i++) {
+                LdapComparatorWorker worker = new LdapComparatorWorker(i, ds, printer, comparator);
+                compareWorkers.add(worker);
 
+                comparatorFutures.add(executor.submit(worker));
+            }
 
+            // wait for comparator workers to finish
+            for (Future f : comparatorFutures) {
+                f.get();
+            }
         } catch (Exception ex) {
             throw new RuntimeException(ex); // todo handle
         } finally {

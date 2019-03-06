@@ -4,67 +4,74 @@ import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import com.evolveum.midpoint.midcredible.framework.util.State;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
-import org.apache.directory.api.ldap.extras.controls.vlv.VirtualListViewRequest;
-import org.apache.directory.api.ldap.extras.controls.vlv.VirtualListViewRequestImpl;
-import org.apache.directory.api.ldap.model.cursor.CursorException;
-import org.apache.directory.api.ldap.model.cursor.SearchCursor;
-import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.entry.Value;
-import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.message.SearchRequest;
-import org.apache.directory.api.ldap.model.message.controls.SortKey;
-import org.apache.directory.api.ldap.model.message.controls.SortRequest;
-import org.apache.directory.api.ldap.model.message.controls.SortRequestControlImpl;
-import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.apache.directory.api.ldap.model.ldif.LdapLdifException;
+import org.apache.directory.api.ldap.model.ldif.LdifEntry;
+import org.apache.directory.api.ldap.model.ldif.LdifReader;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class LdapComparator {
+public class LdapComparatorWorker implements Runnable {
 
-    private static final int PAGE_SIZE = 1000;
+    private int workerId;
 
-    private FreakinComparator comparator = new FreakinComparatorImpl();
+    private DataSource dataSource;
 
-    public void execute() {
-        try (CsvReportPrinter printer = new CsvReportPrinter("./target/out.csv");           // todo fix csv path
-             LdapConnection oldCon = setupConnection("host", 1389, false);
-             LdapConnection newCon = setupConnection("host", 2389, false)) {
+    private CsvReportPrinter printer;
 
-            String sortAttribute = "dn";
+    private FreakinComparator comparator;
 
-            int oldOffset = 0;      // todo move offsets!
-            int newOffset = 0;
+    private boolean canceled;
 
-            SearchCursor oldCursor = executeQuery(oldCon, sortAttribute, oldOffset, PAGE_SIZE);
-            SearchCursor newCursor = executeQuery(newCon, sortAttribute, newOffset, PAGE_SIZE);
+    public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer, FreakinComparator comparator) {
+        this.workerId = workerId;
+        this.dataSource = dataSource;
+        this.printer = printer;
+        this.comparator = comparator;
+    }
 
-            Map<Column, List<Object>> oldRow = null;
-            Map<Column, List<Object>> newRow = null;
+    public void cancel() {
+        canceled = true;
+    }
+
+    @Override
+    public void run() {
+        Set<Column> columns = buildColumns();
+
+        try {
+            ResultSet oldRs = createResultSet("old_data", workerId);
+            ResultSet newRs = createResultSet("new_data", workerId);
 
             boolean moveOld = false;
             boolean moveNew = false;
 
+            Map<Column, Set<Object>> oldRow = null;
+            Map<Column, Set<Object>> newRow = null;
+
             while (true) {
                 if (moveOld) {
-                    oldCursor = moveToNextEntry(oldCursor, oldCon, sortAttribute, oldOffset, PAGE_SIZE);
-                    oldRow = createMapFromRow(oldCursor);
+                    oldRs.next();
                     moveOld = false;
-                }
-
-                if (moveNew) {
-                    newCursor = moveToNextEntry(newCursor, newCon, sortAttribute, newOffset, PAGE_SIZE);
-                    newRow = createMapFromRow(newCursor);
-                    moveNew = false;
+                    oldRow = createEntryFromRow(oldRs);
                 }
 
                 if (oldRow == null) {
                     break;
+                }
+
+                if (moveNew) {
+                    newRs.next();
+                    moveNew = false;
+                    newRow = createEntryFromRow(newRs);
                 }
 
                 if (newRow == null) {
@@ -96,10 +103,8 @@ public class LdapComparator {
                 }
             }
 
-            while (true) {
-                newCursor = moveToNextEntry(newCursor, newCon, sortAttribute, newOffset, PAGE_SIZE);
-                newRow = createMapFromRow(newCursor);
-
+            while (newRs.next()) {
+                newRow = createEntryFromRow(newRs);
                 if (newRow == null) {
                     break;
                 }
@@ -108,8 +113,17 @@ public class LdapComparator {
                 printCsvRow(printer, RowState.OLD_BEFORE_NEW, newRow);
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex); // todo handle exception
+            throw new RuntimeException(ex); //todo error handling
         }
+    }
+
+    private ResultSet createResultSet(String table, int workerId) throws SQLException {
+        Connection con = dataSource.getConnection();
+
+        PreparedStatement pstmt = con.prepareStatement("select entry from " + table + " where worker = ? order by dn");
+        pstmt.setInt(0, workerId);
+
+        return pstmt.executeQuery();
     }
 
     private void printCsvRow(CsvReportPrinter printer, Map<Column, List<ColumnValue>> changes) throws IOException {
@@ -132,7 +146,7 @@ public class LdapComparator {
                     changed = true;
                 }
 
-
+                // todo transform to entry for printer
             }
         }
 
@@ -142,10 +156,10 @@ public class LdapComparator {
         printer.printCsvRow(comparator.getReportedAttributes(), entity);
     }
 
-    private void printCsvRow(CsvReportPrinter printer, RowState rowState, Map<Column, List<Object>> entry) throws IOException {
+    private void printCsvRow(CsvReportPrinter printer, RowState rowState, Map<Column, Set<Object>> entry) throws IOException {
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
-        for (Map.Entry<Column, List<Object>> e : entry.entrySet()) {
+        for (Map.Entry<Column, Set<Object>> e : entry.entrySet()) {
             if (e.getValue() == null || e.getValue().isEmpty()) {
                 continue;
             }
@@ -180,70 +194,38 @@ public class LdapComparator {
         }
     }
 
-    private Map<Column, List<Object>> createMapFromRow(SearchCursor cursor) throws LdapException {
-        Entry entry = getEntry(cursor);
-        if (entry == null) {
+    private Map<Column, Set<Object>> createEntryFromRow(ResultSet rs) throws SQLException {
+        if (rs.isAfterLast()) {
             return null;
         }
 
-        Map<Column, List<Object>> map = new HashMap<>();
-        Iterator<Attribute> iterator = entry.iterator();
-        while (iterator.hasNext()) {
-            Attribute a = iterator.next();
+        Map<Column, Set<Object>> result = new HashMap<>();
 
-            List<Object> vals = new ArrayList<>();
+        String strEntry = rs.getString("entry");
 
-            Iterator<Value> values = a.iterator();
-            while (values.hasNext()) {
-                vals.add(values.next().getValue());
+        try (LdifReader reader = new LdifReader()) {
+            List<LdifEntry> entries = reader.parseLdif(strEntry);
+            if (entries == null || entries.size() != 1) {
+                throw new IllegalStateException("Couldn't find entry");
             }
+            LdifEntry ldifEntry = entries.get(0);
+            Entry entry = ldifEntry.getEntry();
 
-            map.put(new Column(a.getString(), -1), vals);
+            // todo create map from entry
+        } catch (IOException | LdapLdifException ex) {
+            throw new RuntimeException(ex); // todo better handling
         }
 
-        return map;
+        return result;
     }
 
-    private Entry getEntry(SearchCursor cursor) throws LdapException {
-        if (cursor != null && cursor.available()) {
-            return cursor.getEntry();
+    private Set<Column> buildColumns() {
+        Set<Column> set = new HashSet<>();
+        int i = 0;
+        for (String name : comparator.getReportedAttributes()) {
+            set.add(new Column(name, i++));
         }
 
-        return null;
-    }
-
-    private SearchCursor moveToNextEntry(SearchCursor cursor, LdapConnection connection, String sortAttribute,
-                                         int offset, int pageSize) throws CursorException, LdapException {
-
-        if (!cursor.isAfterLast()) {
-            cursor.next();
-        }
-
-        SearchCursor newCursor = executeQuery(connection, sortAttribute, offset, pageSize);
-        newCursor.first();
-
-        return newCursor;
-    }
-
-    private SearchCursor executeQuery(LdapConnection connection, String sortAttribute, int offset, int pageSize)
-            throws LdapException {
-        SearchRequest req = comparator.buildSearchRequest();
-
-        // vlv
-        VirtualListViewRequest vlv = new VirtualListViewRequestImpl();
-        vlv.setOffset(offset);
-        vlv.setContentCount(pageSize);
-        req.addControl(vlv);
-
-        // sort
-        SortRequest sort = new SortRequestControlImpl();
-        sort.addSortKey(new SortKey(sortAttribute));
-        req.addControl(sort);
-
-        return connection.search(req);
-    }
-
-    private LdapConnection setupConnection(String host, int port, boolean secured) {
-        return new LdapNetworkConnection(host, port, secured);
+        return set;
     }
 }
