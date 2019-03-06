@@ -6,4 +6,5 @@ public interface ComparisonParent {
     String COMPARATOR_LOCATION = "comparator.location";
     String OUT_CSV_FILE_LOCATION = "out.csv.file.location";
 
+   public void compare(Boolean compareAttributes) throws Exception;
 }

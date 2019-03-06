@@ -51,7 +51,7 @@ public class JdbcUtil {
             missingProperty.append("driver").append(" ");
         }
         if (parameterMissing) {
-            throw new InvalidParameterException(MessageFormat.format("Parameter no supplied as property, {0}", parameterMissing));
+            throw new InvalidParameterException(MessageFormat.format("Parameter no supplied as property, {0}", missingProperty.toString()));
         }
     }
 

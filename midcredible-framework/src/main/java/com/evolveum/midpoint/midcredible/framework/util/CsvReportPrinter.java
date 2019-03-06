@@ -24,41 +24,43 @@ public class CsvReportPrinter implements Closeable {
 
     // todo who fill close writer? CsvReportPrinter should be closeable [matus]
 
-    public CsvReportPrinter(String path) throws IOException {   // todo constructor should not throw exceptions [matus]
-        try {
-            printer = setupCsvPrinter(path);
-        } catch (IOException e) {
-            LOG.error("Exception while creating a new file: " + e.getLocalizedMessage());
-            throw e;
-        }
+    public CsvReportPrinter(String path) {
+        setupCsvPrinter(path);
     }
 
     @Override
     public void close() throws IOException {
-        // todo implement
+        printer.close();
     }
 
-    public CSVPrinter setupCsvPrinter(String path) throws IOException {
+    private void setupCsvPrinter(String path) {
         Writer writer;
-        if (path != null && !path.isEmpty()) {
+        try {
+            if (path != null && !path.isEmpty()) {
 
-            File file = new File(path);
-            writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
-        } else {
-            writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
+                File file = new File(path);
+                writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+            } else {
+                writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
+            }
+
+            CSVFormat csvFormat = setupCsvFormat();
+            csvFormat = csvFormat.withQuoteMode(QuoteMode.ALL);
+
+            this.printer = csvFormat.print(writer);
+        } catch (IOException e) {
+            LOG.error("Exception while creating a new file: " + e.getLocalizedMessage());
+
+            e.printStackTrace();
         }
-
-        CSVFormat csvFormat = setupCsvFormat();
-        csvFormat= csvFormat.withQuoteMode(QuoteMode.ALL);
-        return csvFormat.print(writer);
-    }
+      }
 
     private CSVFormat setupCsvFormat() {
         return CSVFormat.DEFAULT;
     }
 
     private void printCsvHeader(CSVPrinter printer, List<String> columnNames) throws IOException {
-        LOG.debug("Printing header based on the following column names+ "+ columnNames.toString());
+        LOG.debug("Printing header based on the following column names+ " + columnNames.toString());
         columnNames.sort(String::compareTo);
         int columns = columnNames.size();
         String[] header = new String[columns + 1];
@@ -78,7 +80,7 @@ public class CsvReportPrinter implements Closeable {
             isFirst = false;
         }
         printCsvRow(printer, attrNames, entity);
-       printer.flush();
+        printer.flush();
     }
 
     private void printCsvRow(CSVPrinter printer, List<String> attrNames, Entity entity) throws IOException {
@@ -96,7 +98,7 @@ public class CsvReportPrinter implements Closeable {
 
             Attribute attr = entity.getAttrs().get(name);
             Map<Diff, Collection<Object>> attrValues = attr.getValues();
-            if (attrValues==null){
+            if (attrValues == null) {
 
                 LOG.error("Attribute not present in attribute list");
             }
@@ -111,7 +113,6 @@ public class CsvReportPrinter implements Closeable {
                     }
 
                     valueString.append(object != null ? object.toString() : "[null]");
-                    LOG.info("The value string: "+valueString.toString());
                     if (count < objects.size()) {
                         valueString.append(DEFAULT_MV_SEPARATOR);
                     }
@@ -122,10 +123,9 @@ public class CsvReportPrinter implements Closeable {
             i.getAndIncrement();
         });
 
-        for(int j = 0; j <row.length; j++){
-            LOG.info("The values in row: "+row[j]);
-
+        for (int j = 0; j < row.length; j++) {
         }
+        LOG.trace("Row produced: "+row.toString());
         printer.printRecord(row);
     }
 }
