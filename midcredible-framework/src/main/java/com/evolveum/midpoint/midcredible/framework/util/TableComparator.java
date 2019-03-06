@@ -16,6 +16,7 @@ import javax.script.ScriptException;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
@@ -25,22 +26,22 @@ public class TableComparator implements DatabaseComparison {
     private DataSource newResource;
     private DataSource oldResource;
     private String comparatorPath;
-    private String ourCsvFilePath;
+    private String outCsvFilePath;
 
     private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
 
-    public TableComparator() throws IOException {
+    public TableComparator() {
 
         this(null, null);
     }
 
-    public TableComparator(String properties) throws IOException {
+    public TableComparator(String properties) {
 
         this(null, properties);
     }
 
 
-    public TableComparator(TableButler newResource, String properties) throws IOException {
+    public TableComparator(TableButler newResource, String properties) {
 
         if (newResource != null) {
 
@@ -57,22 +58,27 @@ public class TableComparator implements DatabaseComparison {
 
     }
 
-    private void fetchDataFromProperties() throws IOException {
+    private void fetchDataFromProperties(){
         fetchDataFromProperties(null, false);
     }
 
-    private void fetchDataFromProperties(String propertiesPath) throws IOException {
+    private void fetchDataFromProperties(String propertiesPath) {
         fetchDataFromProperties(propertiesPath, true);
     }
 
-    private void fetchDataFromProperties(String propertiesPath, Boolean isFile) throws IOException {
+    private void fetchDataFromProperties(String propertiesPath, Boolean isFile){
         JdbcUtil util = new JdbcUtil();
         if (isFile) {
-            FileInputStream input = new FileInputStream(propertiesPath);
-            Properties properties = new Properties();
+            FileInputStream input;
+            Properties properties = null;
+            try {
+                input = new FileInputStream(propertiesPath);
+
+            new Properties();
             properties.load(input);
-
-
+            } catch (IOException e) {
+                LOG.error("Unexpected Io Exception: "+e);
+            }
             oldResource = util.setupDataSource(properties.getProperty(JDBC_URL_OLD_RESOURCE), properties.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
                     , properties.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), properties.getProperty(JDBC_DRIVER));
 
@@ -80,7 +86,7 @@ public class TableComparator implements DatabaseComparison {
                     , properties.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), properties.getProperty(JDBC_DRIVER));
 
             comparatorPath = properties.getProperty(COMPARATOR_LOCATION);
-            ourCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
+            outCsvFilePath = properties.getProperty(OUT_CSV_FILE_LOCATION);
         } else {
             String propertyPath =  System.getProperty(PROPERTIES_FILE_LOCATION);
 
@@ -97,14 +103,14 @@ public class TableComparator implements DatabaseComparison {
                     , System.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), System.getProperty(JDBC_DRIVER));
 
             comparatorPath = System.getProperty(COMPARATOR_LOCATION);
-            ourCsvFilePath = System.getProperty(OUT_CSV_FILE_LOCATION);
+            outCsvFilePath = System.getProperty(OUT_CSV_FILE_LOCATION);
             }
         }
 
     }
 
-
-    public void compare(Boolean compareAttributes) throws SQLException, InstantiationException, IllegalAccessException, ScriptException, IOException {
+@Override
+    public void compare(Boolean compareAttributes) throws SQLException, IOException, ScriptException, IllegalAccessException, InstantiationException {
         try {
             executeComparison(setupComparator(), compareAttributes);
         } catch (IOException e) {
@@ -121,7 +127,7 @@ public class TableComparator implements DatabaseComparison {
             throw e;
         } finally {
 
-            LOG.info("Closing connection to both data sources: ");
+            LOG.info("Closing connection to both data sources.");
 
             newResource.getConnection().close();
             oldResource.getConnection().close();
@@ -129,7 +135,7 @@ public class TableComparator implements DatabaseComparison {
     }
 
     protected void executeComparison(Comparator comparator, Boolean compareAttributes) throws SQLException, IOException {
-        CsvReportPrinter reportPrinter = new CsvReportPrinter(ourCsvFilePath);
+        CsvReportPrinter reportPrinter = new CsvReportPrinter(outCsvFilePath);
 
         ResultSet oldRs;
         ResultSet newRs;
@@ -240,6 +246,10 @@ public class TableComparator implements DatabaseComparison {
         } catch (IOException e) {
             LOG.error("IO exception white iterating trough result set " + e.getLocalizedMessage());
             throw e;
+        }
+        finally {
+            LOG.info("Closing the output printer.");
+            reportPrinter.close();
         }
     }
 
