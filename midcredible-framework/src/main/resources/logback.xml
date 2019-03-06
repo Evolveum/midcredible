@@ -14,9 +14,10 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="WARN">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
 
+    <logger name="com.evolveum.midpoint.midcredible.framework.comparator" level="INFO"/>
 </configuration>

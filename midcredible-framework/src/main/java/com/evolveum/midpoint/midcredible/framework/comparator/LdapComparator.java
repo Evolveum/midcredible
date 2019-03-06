@@ -12,8 +12,6 @@ import java.util.Set;
  */
 public interface LdapComparator {
 
-    List<String> getReportedAttributes();
-
     SearchRequest buildSearchRequest() throws LdapException;
 
     RowState compareIdentity(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry);

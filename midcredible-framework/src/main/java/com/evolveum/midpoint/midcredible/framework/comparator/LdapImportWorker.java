@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework.comparator;
 
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
@@ -10,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -30,14 +33,18 @@ public class LdapImportWorker implements Runnable {
 
     private LdapComparator comparator;
 
+    private Set<String> columns;
+
     private boolean canceled;
 
-    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection, LdapComparator comparator) {
+    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection,
+                            LdapComparator comparator, Set<String> columns) {
         this.workerCount = workerCount;
         this.jdbc = jdbc;
         this.table = table;
         this.ldapConnection = ldapConnection;
         this.comparator = comparator;
+        this.columns = columns;
     }
 
     public void cancel() {
@@ -66,6 +73,8 @@ public class LdapImportWorker implements Runnable {
                 LdifEntry e = new LdifEntry(entry);
                 String ldif = e.toString();
 
+                processColumnMap(entry.getAttributes());
+
                 rows.add(new Object[]{dn, worker, ldif});
 
                 if (rows.size() >= JDBC_BATCH_SIZE) {
@@ -75,8 +84,9 @@ public class LdapImportWorker implements Runnable {
 
                 count++;
 
-                if (lastPrintoutTime + 5000 < System.currentTimeMillis()) { // todo constant for printout
+                if (lastPrintoutTime + LdapDbComparator.PRINTOUT_TIME_FREQUENCY < System.currentTimeMillis()) {
                     printStatus(count);
+                    lastPrintoutTime = System.currentTimeMillis();
                 }
             }
 
@@ -90,7 +100,11 @@ public class LdapImportWorker implements Runnable {
         }
     }
 
+    private void processColumnMap(Collection<Attribute> attributes) {
+        attributes.forEach(a -> columns.add(a.getId()));
+    }
+
     private void printStatus(int count) {
-        LOG.info("Processed {} entries to {}", count, table);
+        LOG.info("Imported {} entries to {}", count, table);
     }
 }

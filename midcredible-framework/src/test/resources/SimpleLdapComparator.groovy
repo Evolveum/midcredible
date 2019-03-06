@@ -1,22 +1,20 @@
 package com.evolveum.midpoint.midcredible.framework.comparator
 
-import org.apache.directory.api.ldap.model.entry.Entry
+
 import org.apache.directory.api.ldap.model.exception.LdapException
-import org.apache.directory.api.ldap.model.ldif.LdifEntry
 import org.apache.directory.api.ldap.model.message.SearchRequest
 import org.apache.directory.api.ldap.model.message.SearchRequestImpl
 import org.apache.directory.api.ldap.model.message.SearchScope
 import org.apache.directory.api.ldap.model.name.Dn
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 class SimpleLdapComparator implements LdapComparator {
 
-    @Override
-    List<String> getReportedAttributes() {
-        return Arrays.asList("dn", "givenName", "familyName")
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleLdapComparator.class)
 
     @Override
     SearchRequest buildSearchRequest() throws LdapException {
@@ -31,11 +29,22 @@ class SimpleLdapComparator implements LdapComparator {
 
     @Override
     RowState compareIdentity(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry) {
-        Entry entry = null
-        LdifEntry ldifEntry = new LdifEntry(entry)
+        String oldDn = oldEntry.get(new Column("dn"))?.first()
+        String newDn = newEntry.get(new Column("dn"))?.first()
 
-//        return oldEntry.get("dn").equals(newEntry.get("dn"))
-        return null    // todo compare dn
+        int result = String.CASE_INSENSITIVE_ORDER.compare(oldDn, newDn)
+        RowState rs
+        if (result == 0) {
+            rs = RowState.EQUAL
+        } else if (result < 0) {
+            rs = RowState.OLD_BEFORE_NEW
+        } else {
+            rs = RowState.OLD_AFTER_NEW
+        }
+
+        LOG.trace("Compare entity: {}\n{}\n{}", rs, oldEntry, newEntry)
+
+        return rs
     }
 
     @Override

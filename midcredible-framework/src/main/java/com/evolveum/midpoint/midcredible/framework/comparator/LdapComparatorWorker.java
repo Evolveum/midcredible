@@ -4,10 +4,13 @@ import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.framework.util.Diff;
 import com.evolveum.midpoint.midcredible.framework.util.State;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.ldif.LdapLdifException;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.ldif.LdifReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -22,6 +25,8 @@ import java.util.*;
  */
 public class LdapComparatorWorker implements Runnable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(LdapComparatorWorker.class);
+
     private int workerId;
 
     private DataSource dataSource;
@@ -30,13 +35,17 @@ public class LdapComparatorWorker implements Runnable {
 
     private LdapComparator comparator;
 
+    private Map<String, Column> columnMap;
+
     private boolean canceled;
 
-    public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer, LdapComparator comparator) {
+    public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer,
+                                LdapComparator comparator, Map<String, Column> columnMap) {
         this.workerId = workerId;
         this.dataSource = dataSource;
         this.printer = printer;
         this.comparator = comparator;
+        this.columnMap = columnMap;
     }
 
     public void cancel() {
@@ -45,19 +54,21 @@ public class LdapComparatorWorker implements Runnable {
 
     @Override
     public void run() {
-        Set<Column> columns = buildColumns();
-
         try {
             ResultSet oldRs = createResultSet("old_data", workerId);
             ResultSet newRs = createResultSet("new_data", workerId);
 
-            boolean moveOld = false;
-            boolean moveNew = false;
+            boolean moveOld = true;
+            boolean moveNew = true;
 
             Map<Column, Set<Object>> oldRow = null;
             Map<Column, Set<Object>> newRow = null;
 
             while (true) {
+                if (canceled) {
+                    break;
+                }
+
                 if (moveOld) {
                     oldRs.next();
                     moveOld = false;
@@ -104,6 +115,10 @@ public class LdapComparatorWorker implements Runnable {
             }
 
             while (newRs.next()) {
+                if (canceled) {
+                    break;
+                }
+
                 newRow = createEntryFromRow(newRs);
                 if (newRow == null) {
                     break;
@@ -127,6 +142,9 @@ public class LdapComparatorWorker implements Runnable {
     }
 
     private void printCsvRow(CsvReportPrinter printer, Map<Column, List<ColumnValue>> changes) throws IOException {
+        LOG.info("Printing EQUAL");
+        if (1 == 1) return;
+
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
         boolean changed = false;
@@ -153,10 +171,13 @@ public class LdapComparatorWorker implements Runnable {
         Entity entity = new Entity(null, attributes);
         entity.setChanged(getState(RowState.EQUAL, changed));
 
-        printer.printCsvRow(comparator.getReportedAttributes(), entity);
+//        printer.printCsvRow(comparator.getReportedAttributes(), entity);
     }
 
     private void printCsvRow(CsvReportPrinter printer, RowState rowState, Map<Column, Set<Object>> entry) throws IOException {
+        LOG.info("Printing {}", rowState);
+        if (1 == 1) return;
+
         Map<String, com.evolveum.midpoint.midcredible.framework.util.structural.Attribute> attributes = new HashMap<>();
 
         for (Map.Entry<Column, Set<Object>> e : entry.entrySet()) {
@@ -178,7 +199,7 @@ public class LdapComparatorWorker implements Runnable {
         Entity entity = new Entity(null, attributes);
         entity.setChanged(getState(rowState, true));
 
-        printer.printCsvRow(comparator.getReportedAttributes(), entity);
+//        printer.printCsvRow(comparator.getReportedAttributes(), entity);
     }
 
     private State getState(RowState state, boolean changed) {
@@ -211,21 +232,18 @@ public class LdapComparatorWorker implements Runnable {
             LdifEntry ldifEntry = entries.get(0);
             Entry entry = ldifEntry.getEntry();
 
-            // todo create map from entry
+            result.put(columnMap.get(LdapDbComparator.DN_ATTRIBUTE), new HashSet<>(Arrays.asList(entry.getDn().getNormName())));
+
+            for (Attribute attr : entry.getAttributes()) {
+                Set<Object> values = new HashSet<>();
+                attr.iterator().forEachRemaining(v -> values.add(v));
+
+                result.put(columnMap.get(attr.getId()), values);
+            }
         } catch (IOException | LdapLdifException ex) {
             throw new RuntimeException(ex); // todo better handling
         }
 
         return result;
-    }
-
-    private Set<Column> buildColumns() {
-        Set<Column> set = new HashSet<>();
-        int i = 0;
-        for (String name : comparator.getReportedAttributes()) {
-            set.add(new Column(name, i++));
-        }
-
-        return set;
     }
 }

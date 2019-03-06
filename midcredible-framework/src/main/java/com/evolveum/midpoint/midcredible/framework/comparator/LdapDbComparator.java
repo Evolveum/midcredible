@@ -21,10 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -46,15 +44,15 @@ public class LdapDbComparator {
 
     public static final String PROP_OLD_PASSWORD = "comparator.ldap.old.password";
 
-    public static final String PROP_NEW_HOST = "comparator.ldap.old.host";
+    public static final String PROP_NEW_HOST = "comparator.ldap.new.host";
 
-    public static final String PROP_NEW_PORT = "comparator.ldap.old.port";
+    public static final String PROP_NEW_PORT = "comparator.ldap.new.port";
 
-    public static final String PROP_NEW_SECURED = "comparator.ldap.old.secured";
+    public static final String PROP_NEW_SECURED = "comparator.ldap.new.secured";
 
-    public static final String PROP_NEW_USERNAME = "comparator.ldap.old.username";
+    public static final String PROP_NEW_USERNAME = "comparator.ldap.new.username";
 
-    public static final String PROP_NEW_PASSWORD = "comparator.ldap.old.password";
+    public static final String PROP_NEW_PASSWORD = "comparator.ldap.new.password";
 
     public static final String PROP_COMPARATOR_SCRIPT = "comparator.ldap.script";
 
@@ -67,6 +65,10 @@ public class LdapDbComparator {
     private static final String OLD_TABLE_NAME = "old_data";
 
     private static final String NEW_TABLE_NAME = "new_data";
+
+    static final String DN_ATTRIBUTE = "dn";
+
+    static final long PRINTOUT_TIME_FREQUENCY = 5000;
 
     private enum LDAP_DATASET {
         OLD, NEW
@@ -85,12 +87,12 @@ public class LdapDbComparator {
     public void execute() {
         int workerCount = Integer.parseInt(properties.getProperty(PROP_WORKER_COUNT, "1"));
 
-        int threadPoolSize = workerCount > 1 ? workerCount : 2;
-        executor = Executors.newFixedThreadPool(threadPoolSize);
+        int poolSize = workerCount + 2;
+        executor = Executors.newFixedThreadPool(poolSize);
 
         LOG.info("Initializing LDAP connections");
 
-        try (HikariDataSource ds = createDataSource(workerCount);
+        try (HikariDataSource ds = createDataSource(poolSize);
              CsvReportPrinter printer = new CsvReportPrinter();
              LdapConnection oldCon = setupConnection(LDAP_DATASET.OLD);
              LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
@@ -106,9 +108,12 @@ public class LdapDbComparator {
             LOG.info("Setting up database");
             setupH2(jdbc);
 
+            Set<String> columns = ConcurrentHashMap.newKeySet();
+            columns.add(DN_ATTRIBUTE);
+
             // fill in DB table
-            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, OLD_TABLE_NAME, oldCon, comparator);
-            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, NEW_TABLE_NAME, newCon, comparator);
+            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, OLD_TABLE_NAME, oldCon, comparator, columns);
+            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, NEW_TABLE_NAME, newCon, comparator, columns);
 
             LOG.info("Starting import from LDAP");
             Future importOldFuture = executor.submit(importOldWorker);
@@ -118,11 +123,14 @@ public class LdapDbComparator {
             importOldFuture.get();
             importNewFuture.get();
 
+            LOG.info("Found {} attributes in total", columns.size());
+            Map<String, Column> columnMap = buildColumnMap(columns);
+
             LOG.info("Starting compare process");
             List<LdapComparatorWorker> compareWorkers = new ArrayList<>();
             List<Future> comparatorFutures = new ArrayList<>();
             for (int i = 0; i < workerCount; i++) {
-                LdapComparatorWorker worker = new LdapComparatorWorker(i, ds, printer, comparator);
+                LdapComparatorWorker worker = new LdapComparatorWorker(i, ds, printer, comparator, columnMap);
                 compareWorkers.add(worker);
 
                 comparatorFutures.add(executor.submit(worker));
@@ -255,4 +263,18 @@ public class LdapDbComparator {
         return type.newInstance();
     }
 
+    private Map<String, Column> buildColumnMap(Set<String> columns) {
+        List<String> names = new ArrayList<>();
+        names.addAll(columns);
+
+        Collections.sort(names);
+
+        Map<String, Column> result = new HashMap<>();
+        for (int i = 0; i < names.size(); i++) {
+            Column column = new Column(names.get(i), i);
+            result.put(column.getName(), column);
+        }
+
+        return result;
+    }
 }
