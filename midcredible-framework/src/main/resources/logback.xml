@@ -8,7 +8,7 @@
     </appender>
 
     <appender name="TEST" class="ch.qos.logback.core.FileAppender">
-        <file>./target/test.log</file>
+        <file>./target/comparator.log</file>
         <encoder>
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
         </encoder>

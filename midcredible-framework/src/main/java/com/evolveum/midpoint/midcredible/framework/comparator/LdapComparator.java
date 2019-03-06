@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public interface FreakinComparator {
+public interface LdapComparator {
 
     List<String> getReportedAttributes();
 

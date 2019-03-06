@@ -3,16 +3,25 @@ package com.evolveum.midpoint.midcredible.framework.comparator;
 import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.h2.Driver;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -22,12 +31,48 @@ import java.util.concurrent.Future;
  */
 public class LdapComparator2 {
 
+    public static final String PROP_CSV_PATH = "comparator.ldap.csv.path";
+
+    public static final String PROP_OLD_HOST = "comparator.ldap.old.host";
+
+    public static final String PROP_OLD_PORT = "comparator.ldap.old.port";
+
+    public static final String PROP_OLD_SECURED = "comparator.ldap.old.secured";
+
+    public static final String PROP_OLD_USERNAME = "comparator.ldap.old.username";
+
+    public static final String PROP_OLD_PASSWORD = "comparator.ldap.old.password";
+
+    public static final String PROP_NEW_HOST = "comparator.ldap.old.host";
+
+    public static final String PROP_NEW_PORT = "comparator.ldap.old.port";
+
+    public static final String PROP_NEW_SECURED = "comparator.ldap.old.secured";
+
+    public static final String PROP_NEW_USERNAME = "comparator.ldap.old.username";
+
+    public static final String PROP_NEW_PASSWORD = "comparator.ldap.old.password";
+
+    public static final String PROP_COMPARATOR_SCRIPT = "comparator.ldap.script";
+
+    private static final String DB_PATH = "./data";
+
+    private static final String OLD_TABLE_NAME = "old_data";
+
+    private static final String NEW_TABLE_NAME = "new_data";
+
+    private enum LDAP_DATASET {
+        OLD, NEW
+    }
+
+    private Properties properties;
+
     private ExecutorService executor;
 
-    private FreakinComparator comparator = new FreakinComparatorImpl(); // todo as parameter
+    private LdapComparator comparator;
 
-    public static void main(String[] args) {
-        new LdapComparator2().execute();
+    public LdapComparator2(Properties properties) {
+        this.properties = properties;
     }
 
     public void execute() {
@@ -37,19 +82,19 @@ public class LdapComparator2 {
         executor = Executors.newFixedThreadPool(threadPoolSize);
 
         try (HikariDataSource ds = createDataSource(workerCount);
-             CsvReportPrinter printer = new CsvReportPrinter();           // todo fix csv path
-             LdapConnection oldCon = setupConnection("localhost", 1389, false, "cn=admin,dc=example,dc=com", "admin");
-             LdapConnection newCon = setupConnection("localhost", 2389, false, "cn=admin,dc=example,dc=com", "admin")) {
+             CsvReportPrinter printer = new CsvReportPrinter();
+             LdapConnection oldCon = setupConnection(LDAP_DATASET.OLD);
+             LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
 
-            printer.setupCsvPrinter("./target/out.csv");
+            printer.setupCsvPrinter(properties.getProperty(PROP_CSV_PATH));
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
 
             setupH2(jdbc);
 
             // fill in DB table
-            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, "old_data", oldCon, comparator);
-            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, "new_data", newCon, comparator);
+            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, OLD_TABLE_NAME, oldCon, comparator);
+            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, NEW_TABLE_NAME, newCon, comparator);
 
             Future importOldFuture = executor.submit(importOldWorker);
             Future importNewFuture = executor.submit(importNewWorker);
@@ -81,8 +126,8 @@ public class LdapComparator2 {
     }
 
     private void setupH2(JdbcTemplate jdbc) {
-        jdbc.execute(buildCreateTable("old_data"));
-        jdbc.execute(buildCreateTable("new_data"));
+        jdbc.execute(buildCreateTable(OLD_TABLE_NAME));
+        jdbc.execute(buildCreateTable(NEW_TABLE_NAME));
     }
 
     private HikariDataSource createDataSource(int maxPoolSize) throws SQLException {
@@ -91,7 +136,7 @@ public class LdapComparator2 {
         HikariConfig config = new HikariConfig();
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(maxPoolSize);
-        config.setJdbcUrl("jdbc:h2:file:./data");
+        config.setJdbcUrl("jdbc:h2:file:" + DB_PATH);
         config.setUsername("sa");
         config.setPassword("");
         config.setDriverClassName(Driver.class.getName());
@@ -119,7 +164,7 @@ public class LdapComparator2 {
     }
 
     private File deleteDbFile() {
-        File data = new File("./data.mv.db");
+        File data = new File(DB_PATH + ".mv.db");
         if (data.exists()) {
             data.delete();
         }
@@ -127,12 +172,66 @@ public class LdapComparator2 {
         return data;
     }
 
-    private LdapConnection setupConnection(String host, int port, boolean secured, String username, String password)
+    private LdapConnection setupConnection(LDAP_DATASET dataset)
             throws LdapException {
+
+        String host = null;
+        Integer port = null;
+        Boolean secured = null;
+        String username = null;
+        String password = null;
+
+        switch (dataset) {
+            case OLD:
+                host = properties.getProperty(PROP_OLD_HOST, "localhost");
+                port = Integer.parseInt(properties.getProperty(PROP_OLD_PORT, "389"));
+                secured = Boolean.parseBoolean(properties.getProperty(PROP_OLD_SECURED, "false"));
+                username = properties.getProperty(PROP_OLD_USERNAME);
+                password = properties.getProperty(PROP_OLD_PASSWORD);
+                break;
+            case NEW:
+                host = properties.getProperty(PROP_NEW_HOST, "localhost");
+                port = Integer.parseInt(properties.getProperty(PROP_NEW_PORT, "389"));
+                secured = Boolean.parseBoolean(properties.getProperty(PROP_NEW_SECURED, "false"));
+                username = properties.getProperty(PROP_NEW_USERNAME);
+                password = properties.getProperty(PROP_NEW_PASSWORD);
+                break;
+        }
 
         LdapConnection con = new LdapNetworkConnection(host, port, secured);
         con.bind(username, password);
 
         return con;
     }
+
+    private LdapComparator setupComparator()
+            throws IOException, ScriptException, IllegalAccessException, InstantiationException {
+
+        File file = new File(properties.getProperty(PROP_COMPARATOR_SCRIPT));
+        String script = FileUtils.readFileToString(file, "utf-8");
+
+        ScriptEngineManager engineManager = new ScriptEngineManager();
+        ScriptEngine engine = engineManager.getEngineByName("groovy");
+
+        GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl) engine;
+        gse.compile(script);
+
+        Class<? extends LdapComparator> type = null;
+
+        GroovyClassLoader gcl = gse.getClassLoader();
+        for (Class c : gcl.getLoadedClasses()) {
+            if (LdapComparator.class.isAssignableFrom(c)) {
+                type = c;
+                break;
+            }
+        }
+
+        if (type == null) {
+            throw new IllegalStateException("Couldn't find comparator class that is assignable from Comparator "
+                    + ", available classes: " + Arrays.toString(gcl.getLoadedClasses()));
+        }
+
+        return type.newInstance();
+    }
+
 }

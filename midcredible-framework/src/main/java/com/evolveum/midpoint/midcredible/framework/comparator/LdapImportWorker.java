@@ -24,11 +24,11 @@ public class LdapImportWorker implements Runnable {
 
     private LdapConnection ldapConnection;
 
-    private FreakinComparator comparator;
+    private LdapComparator comparator;
 
     private boolean canceled;
 
-    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection, FreakinComparator comparator) {
+    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection, LdapComparator comparator) {
         this.workerCount = workerCount;
         this.jdbc = jdbc;
         this.table = table;

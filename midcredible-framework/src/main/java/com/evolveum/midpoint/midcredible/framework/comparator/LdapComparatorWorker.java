@@ -28,11 +28,11 @@ public class LdapComparatorWorker implements Runnable {
 
     private CsvReportPrinter printer;
 
-    private FreakinComparator comparator;
+    private LdapComparator comparator;
 
     private boolean canceled;
 
-    public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer, FreakinComparator comparator) {
+    public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer, LdapComparator comparator) {
         this.workerId = workerId;
         this.dataSource = dataSource;
         this.printer = printer;
@@ -121,7 +121,7 @@ public class LdapComparatorWorker implements Runnable {
         Connection con = dataSource.getConnection();
 
         PreparedStatement pstmt = con.prepareStatement("select entry from " + table + " where worker = ? order by dn");
-        pstmt.setInt(0, workerId);
+        pstmt.setInt(1, workerId);
 
         return pstmt.executeQuery();
     }
