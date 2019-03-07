@@ -250,7 +250,7 @@ public class TableComparator implements DatabaseComparison {
             LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
             throw e;
         } catch (IOException e) {
-            LOG.error("IO exception white iterating trough result set " + e.getLocalizedMessage());
+            LOG.error("IO exception white iterating trough result set " + e.getMessage());
             throw e;
         } finally {
             LOG.info("Closing the output printer.");
