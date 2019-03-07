@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
+import com.evolveum.midpoint.midcredible.framework.comparator.db.TableComparator;
+
 import java.security.InvalidParameterException;
 
 public class ComparatorFactory {
