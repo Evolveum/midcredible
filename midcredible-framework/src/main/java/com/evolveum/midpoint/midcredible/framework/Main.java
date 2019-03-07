@@ -5,33 +5,21 @@ import com.beust.jcommander.ParameterException;
 import com.evolveum.midpoint.midcredible.framework.cmd.Action;
 import com.evolveum.midpoint.midcredible.framework.cmd.BaseOptions;
 import com.evolveum.midpoint.midcredible.framework.cmd.Command;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         new Main().run(args);
-
-        // Only the first argument is Valid
-
-//        String comparator = args[0];
-//
-//        ComparatorFactory cf = new ComparatorFactory();
-//        ComparisonParent comparison= cf.produceComparator(args[0]);
-//        comparison.compare(false);
     }
 
     protected void run(String[] args) {
         JCommander jc = setupCommandLineParser();
-
-        System.err.println("vilko");
 
         try {
             jc.parse(args);
@@ -46,11 +34,10 @@ public class Main {
 
         if (base.isVersion()) {
             try {
-                Path path = Paths.get(Main.class.getResource("/version").toURI());
-                System.out.println("asdf" + path);
-                String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
+                String version = IOUtils.toString(Main.class.getResource("/version"), StandardCharsets.UTF_8);
                 System.out.println(version);
             } catch (Exception ex) {
+                System.err.println("Couldn't print version\n" + printStackToString(ex));
             }
             return;
         }

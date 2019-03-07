@@ -5,6 +5,6 @@ import com.beust.jcommander.Parameters;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Parameters(resourceBundle = "messages", commandDescriptionKey = "compare-table")
-public class CompareTableOptions extends CompareCommonOptions {
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "compare-common")
+public class CompareCommonOptions {
 }
