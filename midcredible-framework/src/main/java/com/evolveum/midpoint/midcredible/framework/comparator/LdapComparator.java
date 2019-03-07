@@ -92,6 +92,8 @@ public abstract class LdapComparator {
 
             col = CollectionUtils.subtract(newValues, oldValues);
             col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.ADDED)));
+
+            changes.put(column, changedVals);
         }
 
 
