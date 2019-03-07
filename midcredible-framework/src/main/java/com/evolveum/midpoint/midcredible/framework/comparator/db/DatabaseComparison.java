@@ -1,4 +1,6 @@
-package com.evolveum.midpoint.midcredible.framework.util;
+package com.evolveum.midpoint.midcredible.framework.comparator.db;
+
+import com.evolveum.midpoint.midcredible.framework.util.ComparisonParent;
 
 public interface DatabaseComparison extends ComparisonParent {
 

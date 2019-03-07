@@ -1,14 +1,10 @@
 package com.evolveum.midpoint.midcredible.example;
 
 import com.evolveum.midpoint.midcredible.framework.test.ButlerBaseTest;
-import com.evolveum.midpoint.midcredible.framework.util.TableComparator;
+import com.evolveum.midpoint.midcredible.framework.comparator.db.TableComparator;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import javax.script.ScriptException;
-import java.io.IOException;
-import java.sql.SQLException;
 
 
 @ContextConfiguration(classes = com.evolveum.midpoint.midcredible.example.ContextConfiguration.class)

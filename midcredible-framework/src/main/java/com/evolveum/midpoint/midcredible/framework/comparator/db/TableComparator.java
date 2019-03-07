@@ -1,6 +1,8 @@
-package com.evolveum.midpoint.midcredible.framework.util;
+package com.evolveum.midpoint.midcredible.framework.comparator.db;
 
 import com.evolveum.midpoint.midcredible.framework.TableButler;
+import com.evolveum.midpoint.midcredible.framework.util.*;
+import com.evolveum.midpoint.midcredible.framework.util.Comparator;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Label;
@@ -131,7 +133,7 @@ public class TableComparator implements DatabaseComparison {
         }
     }
 
-    protected void executeComparison(Comparator comparator, Boolean compareAttributes) throws SQLException, IOException {
+    protected void executeComparison(com.evolveum.midpoint.midcredible.framework.util.Comparator comparator, Boolean compareAttributes) throws SQLException, IOException {
         CsvReportPrinter reportPrinter = new CsvReportPrinter();
         reportPrinter.setOutPath(outCsvFilePath);
 
@@ -248,7 +250,7 @@ public class TableComparator implements DatabaseComparison {
             LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
             throw e;
         } catch (IOException e) {
-            LOG.error("IO exception white iterating trough result set " + e.getLocalizedMessage());
+            LOG.error("IO exception white iterating trough result set " + e.getMessage());
             throw e;
         } finally {
             LOG.info("Closing the output printer.");
@@ -281,7 +283,7 @@ public class TableComparator implements DatabaseComparison {
         return entity;
     }
 
-    private Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException {
+    private com.evolveum.midpoint.midcredible.framework.util.Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException {
         return GroovyUtils.createTypeInstance(Comparator.class, comparatorPath);
     }
 
