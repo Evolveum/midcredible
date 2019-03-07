@@ -18,7 +18,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <skip.fat.jar>false</skip.fat.jar>
 
         <midpoint.rest.version>3.9-SNAPSHOT</midpoint.rest.version>
         <midpoint.version>3.9</midpoint.version>
@@ -34,6 +33,7 @@
         <commons.csv.version>1.6</commons.csv.version>
         <directory.api.version>2.0.0.AM2</directory.api.version>
         <hikaricp.version>3.2.0</hikaricp.version>
+        <jcommander.version>1.72</jcommander.version>
     </properties>
 
     <dependencies>
@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
-            <version>1.72</version>
+            <version>${jcommander.version}</version>
         </dependency>
 
         <!-- TEST DEPENDENCIES -->
@@ -178,7 +178,6 @@
     </dependencies>
 
     <build>
-        <finalName>midcredible</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources/</directory>
@@ -222,23 +221,36 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.1.3.RELEASE</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${skip.fat.jar}</skip>
-                            <mainClass>com.evolveum.midpoint.midcredible.framework.Main</mainClass>
-                            <layout>ZIP</layout>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>executable</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <finalName>midcredible</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>2.1.3.RELEASE</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                                <configuration>
+                                    <mainClass>com.evolveum.midpoint.midcredible.framework.Main</mainClass>
+                                    <classifier>executable</classifier>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
