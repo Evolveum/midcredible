@@ -31,7 +31,9 @@ public class LdapComparatorTest {
 
         props.setProperty(PROP_COMPARATOR_SCRIPT, "./src/test/resources/SimpleLdapComparator.groovy");
 
-        props.setProperty(PROP_WORKER_COUNT, "1");
+        props.setProperty(PROP_WORKER_COUNT, "2");
+
+        props.setProperty(PROP_CSV_PRINT_EQUAL, "false");
 
         new LdapDbComparator(props).execute();
     }

@@ -61,6 +61,8 @@ public class LdapDbComparator {
 
     private static final String DEFAULT_DB_PATH = "./data";
 
+    private static final String DEFAULT_CSV_EQUAL = "true";
+
     private static final String OLD_TABLE_NAME = "old_data";
 
     private static final String NEW_TABLE_NAME = "new_data";
@@ -101,11 +103,10 @@ public class LdapDbComparator {
                     properties.getProperty(PROP_COMPARATOR_SCRIPT));
 
             LOG.info("Setting up csv printer");
-
-            printer.init();
             printer.setOutPath(properties.getProperty(PROP_CSV_PATH));
-
-
+            String printEqual = properties.getProperty(PROP_CSV_PRINT_EQUAL, DEFAULT_CSV_EQUAL);
+            printer.setPrintEqual(Boolean.parseBoolean(printEqual));
+            printer.init();
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
 

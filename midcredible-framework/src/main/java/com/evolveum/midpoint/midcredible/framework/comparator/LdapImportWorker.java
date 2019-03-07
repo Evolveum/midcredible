@@ -75,7 +75,7 @@ public class LdapImportWorker implements Runnable {
 
                 Entry entry = cur.getEntry();
                 String dn = entry.getDn().getNormName().toLowerCase();
-                int worker = dn.hashCode() % workerCount;
+                int worker = Math.abs(dn.hashCode()) % workerCount;
 
                 LdifEntry e = new LdifEntry(entry);
                 String ldif = e.toString();
