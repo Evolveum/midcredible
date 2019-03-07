@@ -1,10 +1,11 @@
 package com.evolveum.midpoint.midcredible.framework.comparator;
 
+import com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDbComparator;
 import org.testng.annotations.Test;
 
 import java.util.Properties;
 
-import static com.evolveum.midpoint.midcredible.framework.comparator.LdapDbComparator.*;
+import static com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDbComparator.*;
 
 /**
  * Created by Viliam Repan (lazyman).
