@@ -9,7 +9,5 @@ public enum ValueState {
 
     ADDED,
 
-    REMOVED,
-
-    CHANGED
+    REMOVED
 }

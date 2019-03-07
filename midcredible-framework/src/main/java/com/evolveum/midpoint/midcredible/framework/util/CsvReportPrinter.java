@@ -122,11 +122,10 @@ public class CsvReportPrinter implements Closeable {
             StringBuilder valueString = new StringBuilder();
 
             Attribute attr = entity.getAttrs().get(name);
-            Map<Diff, Collection<Object>> attrValues = attr.getValues();
-            if (attrValues == null) {
-
+            if (attr == null || attr.getValues() == null) {
                 LOG.debug("Attribute value not present in attribute list for attribute: ", name);
             } else {
+                Map<Diff, Collection<Object>> attrValues = attr.getValues();
                 attrValues.forEach((diff, objects) -> {
                     int count = 1;
                     objects.forEach(object -> {

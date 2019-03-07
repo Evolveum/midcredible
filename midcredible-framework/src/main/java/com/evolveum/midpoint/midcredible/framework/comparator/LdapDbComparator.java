@@ -25,39 +25,47 @@ import java.util.concurrent.Future;
  */
 public class LdapDbComparator {
 
-    public static final String PROP_CSV_PATH = "comparator.ldap.csv.path";
+    private static final String PROP_PREFIX = "comparator.ldap.";
 
-    public static final String PROP_OLD_HOST = "comparator.ldap.old.host";
+    public static final String PROP_CSV_PATH = PROP_PREFIX + "csv.path";
 
-    public static final String PROP_OLD_PORT = "comparator.ldap.old.port";
+    public static final String PROP_CSV_PRINT_EQUAL = PROP_PREFIX + ".csv.equal";
 
-    public static final String PROP_OLD_SECURED = "comparator.ldap.old.secured";
+    public static final String PROP_OLD_HOST = PROP_PREFIX + "old.host";
 
-    public static final String PROP_OLD_USERNAME = "comparator.ldap.old.username";
+    public static final String PROP_OLD_PORT = PROP_PREFIX + "old.port";
 
-    public static final String PROP_OLD_PASSWORD = "comparator.ldap.old.password";
+    public static final String PROP_OLD_SECURED = PROP_PREFIX + "old.secured";
 
-    public static final String PROP_NEW_HOST = "comparator.ldap.new.host";
+    public static final String PROP_OLD_USERNAME = PROP_PREFIX + "old.username";
 
-    public static final String PROP_NEW_PORT = "comparator.ldap.new.port";
+    public static final String PROP_OLD_PASSWORD = PROP_PREFIX + "old.password";
 
-    public static final String PROP_NEW_SECURED = "comparator.ldap.new.secured";
+    public static final String PROP_NEW_HOST = PROP_PREFIX + "new.host";
 
-    public static final String PROP_NEW_USERNAME = "comparator.ldap.new.username";
+    public static final String PROP_NEW_PORT = PROP_PREFIX + "new.port";
 
-    public static final String PROP_NEW_PASSWORD = "comparator.ldap.new.password";
+    public static final String PROP_NEW_SECURED = PROP_PREFIX + "new.secured";
 
-    public static final String PROP_COMPARATOR_SCRIPT = "comparator.ldap.script";
+    public static final String PROP_NEW_USERNAME = PROP_PREFIX + "new.username";
 
-    public static final String PROP_WORKER_COUNT = "comparator.ldap.workers";
+    public static final String PROP_NEW_PASSWORD = PROP_PREFIX + "new.password";
+
+    public static final String PROP_COMPARATOR_SCRIPT = PROP_PREFIX + "script";
+
+    public static final String PROP_WORKER_COUNT = PROP_PREFIX + "workers";
+
+    public static final String PROP_DB_PATH = PROP_PREFIX + "db.path";
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapDbComparator.class);
 
-    private static final String DB_PATH = "./data";
+    private static final String DEFAULT_DB_PATH = "./data";
 
     private static final String OLD_TABLE_NAME = "old_data";
 
     private static final String NEW_TABLE_NAME = "new_data";
+
+    private static final long LDAP_CONNECTION_TIMEOUT = 20000L;
 
     static final String DN_ATTRIBUTE = "dn";
 
@@ -95,8 +103,11 @@ public class LdapDbComparator {
                     properties.getProperty(PROP_COMPARATOR_SCRIPT));
 
             LOG.info("Setting up csv printer");
+
             printer.init();
             printer.setOutPath(properties.getProperty(PROP_CSV_PATH));
+
+
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
 
@@ -151,13 +162,17 @@ public class LdapDbComparator {
         jdbc.execute(buildCreateTable(NEW_TABLE_NAME));
     }
 
+    private String getDBPath() {
+        return properties.getProperty(PROP_DB_PATH, DEFAULT_DB_PATH);
+    }
+
     private HikariDataSource createDataSource(int maxPoolSize) throws SQLException {
         deleteDbFile();
 
         HikariConfig config = new HikariConfig();
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(maxPoolSize);
-        config.setJdbcUrl("jdbc:h2:file:" + DB_PATH);
+        config.setJdbcUrl("jdbc:h2:file:" + getDBPath());
         config.setUsername("sa");
         config.setPassword("");
         config.setDriverClassName(Driver.class.getName());
@@ -185,12 +200,12 @@ public class LdapDbComparator {
     }
 
     private void deleteDbFile() {
-        File data = new File(DB_PATH + ".mv.db");
+        File data = new File(getDBPath() + ".mv.db");
         if (data.exists()) {
             data.delete();
         }
 
-        data = new File(DB_PATH + ".trace.db");
+        data = new File(getDBPath() + ".trace.db");
         if (data.exists()) {
             data.delete();
         }
@@ -222,7 +237,9 @@ public class LdapDbComparator {
                 break;
         }
 
+        LOG.info("Creating LDAP connection for {} dataset", dataset);
         LdapConnection con = new LdapNetworkConnection(host, port, secured);
+        con.setTimeOut(LDAP_CONNECTION_TIMEOUT);
         con.bind(username, password);
 
         return con;

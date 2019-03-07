@@ -1,10 +1,15 @@
 package com.evolveum.midpoint.midcredible.framework.comparator;
 
+import org.apache.directory.api.ldap.extras.controls.vlv.VirtualListViewRequest;
+import org.apache.directory.api.ldap.extras.controls.vlv.VirtualListViewRequestImpl;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
+import org.apache.directory.api.ldap.model.message.controls.PagedResults;
+import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +26,8 @@ import java.util.Set;
 public class LdapImportWorker implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapImportWorker.class);
+
+    private static final int LDAP_PAGE_SIZE = 1000;
 
     private static final int JDBC_BATCH_SIZE = 200;
 
@@ -58,8 +65,7 @@ public class LdapImportWorker implements Runnable {
         try {
             List<Object[]> rows = new ArrayList<>();
 
-            // handle in separate thread
-            SearchRequest req = comparator.buildSearchRequest();
+            SearchRequest req = buildSearchRequest();
             SearchCursor cur = ldapConnection.search(req);
             while (cur.next()) {
                 if (canceled) {
@@ -106,5 +112,28 @@ public class LdapImportWorker implements Runnable {
 
     private void printStatus(int count) {
         LOG.info("Imported {} entries to {}", count, table);
+    }
+
+    // todo handle NONE, SIMPLE, VLV paging
+    private SearchRequest buildSearchRequest() throws LdapException {
+        SearchRequest req = comparator.buildSearchRequest();
+
+        switch (comparator.getPagingType()) {
+            case NONE:
+                // nothing to do
+                break;
+            case SIMPLE:
+                PagedResults simple = new PagedResultsImpl();
+                // todo add params
+                req.addControl(simple);
+                break;
+            case VLV:
+                VirtualListViewRequest vlv = new VirtualListViewRequestImpl();
+                // todo add params
+                req.addControl(vlv);
+                break;
+        }
+
+        return req;
     }
 }

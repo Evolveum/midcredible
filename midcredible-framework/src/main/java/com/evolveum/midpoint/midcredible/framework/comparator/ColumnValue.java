@@ -24,6 +24,6 @@ public class ColumnValue {
 
     @Override
     public String toString() {
-        return "CV{" + value + ", " + state + '}';
+        return value + "(" + state + ")";
     }
 }
