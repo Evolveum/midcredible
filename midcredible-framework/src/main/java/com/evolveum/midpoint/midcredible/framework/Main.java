@@ -37,7 +37,7 @@ public class Main {
                 String version = IOUtils.toString(Main.class.getResource("/version"), StandardCharsets.UTF_8);
                 System.out.println(version);
             } catch (Exception ex) {
-                System.err.println("Couldn't print version\n" + printStackToString(ex));
+                handleException(base, ex);
             }
             return;
         }

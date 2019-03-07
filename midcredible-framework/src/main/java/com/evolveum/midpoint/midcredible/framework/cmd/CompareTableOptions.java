@@ -7,4 +7,6 @@ import com.beust.jcommander.Parameters;
  */
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "compare-table")
 public class CompareTableOptions extends CompareCommonOptions {
+
+    // todo table comparator options
 }
