@@ -181,14 +181,14 @@ public class LdapComparatorWorker implements Runnable {
 
                 switch (value.getState()) {
                     case EQUAL:
-                        changed = true;
-
                         attr.addValue(Diff.EQUALS, value.getValue());
                         break;
                     case ADDED:
+                        changed = true;
                         attr.addValue(Diff.ADD, value.getValue());
                         break;
                     case REMOVED:
+                        changed = true;
                         attr.addValue(Diff.REMOVE, value.getValue());
                         break;
                 }

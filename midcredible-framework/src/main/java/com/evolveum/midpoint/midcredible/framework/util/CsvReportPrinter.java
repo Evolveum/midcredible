@@ -46,7 +46,7 @@ public class CsvReportPrinter implements Closeable {
                 File file = new File(outPath);
                 file.createNewFile();
 
-                writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+                writer = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file)), StandardCharsets.UTF_8);
             } else {
                 LOG.debug("No path property provided to the printer," +
                         " directing output to STDOUT");
@@ -84,7 +84,7 @@ public class CsvReportPrinter implements Closeable {
         printer.printRecord(header);
     }
 
-    public void printCsvRow(List<String> attrNames, Entity entity) throws IOException {
+    public synchronized void printCsvRow(List<String> attrNames, Entity entity) throws IOException {
         if (isFirst) {
             printCsvHeader(printer, attrNames);
             isFirst = false;

@@ -172,7 +172,7 @@ public class LdapDbComparator {
         HikariConfig config = new HikariConfig();
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(maxPoolSize);
-        config.setJdbcUrl("jdbc:h2:file:" + getDBPath());
+        config.setJdbcUrl("jdbc:h2:file:" + getDBPath() + ";LOG=0;CACHE_SIZE=65536;LOCK_MODE=0;UNDO_LOG=0");
         config.setUsername("sa");
         config.setPassword("");
         config.setDriverClassName(Driver.class.getName());
