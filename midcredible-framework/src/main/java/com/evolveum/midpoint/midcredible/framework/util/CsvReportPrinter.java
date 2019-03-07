@@ -104,7 +104,7 @@ public class CsvReportPrinter implements Closeable {
             return;
         }
 
-        if (!printEqual) {
+        if (printEqual) {
         } else {
 
             if (entityState == State.EQUAL) {
