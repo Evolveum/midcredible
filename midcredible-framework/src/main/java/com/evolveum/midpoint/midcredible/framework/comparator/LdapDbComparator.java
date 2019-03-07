@@ -101,8 +101,11 @@ public class LdapDbComparator {
                     properties.getProperty(PROP_COMPARATOR_SCRIPT));
 
             LOG.info("Setting up csv printer");
-            // todo setup printer
-            printer.setupCsvPrinter(properties.getProperty(PROP_CSV_PATH));
+
+            printer.init();
+            printer.setOutPath(properties.getProperty(PROP_CSV_PATH));
+
+
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
 

@@ -7,6 +7,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.QuoteMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -20,9 +21,10 @@ public class CsvReportPrinter implements Closeable {
     private static final char DEFAULT_MV_SEPARATOR = ';';
     private static final Logger LOG = LoggerFactory.getLogger(CsvReportPrinter.class);
     private Boolean isFirst = true;
-    private CSVPrinter printer;
 
-    // todo who fill close writer? CsvReportPrinter should be closeable [matus]
+    private String outPath;
+    private Boolean printEqual = false;
+    private CSVPrinter printer;
 
     public CsvReportPrinter() {
     }
@@ -34,15 +36,21 @@ public class CsvReportPrinter implements Closeable {
         }
     }
 
-    public void setupCsvPrinter(String path) {
+    public void init() {
         Writer writer;
         try {
-            if (path != null && !path.isEmpty()) {
-                File file = new File(path);
+            if (outPath != null && !outPath.isEmpty()) {
+                LOG.debug("Path property provided to the printer," +
+                        " the output will be directed into the corresponding file: " + outPath);
+
+                File file = new File(outPath);
                 file.createNewFile();
 
                 writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
             } else {
+                LOG.debug("No path property provided to the printer," +
+                        " directing output to STDOUT");
+
                 writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
             }
 
@@ -87,13 +95,28 @@ public class CsvReportPrinter implements Closeable {
 
     private void printCsvRow(CSVPrinter printer, List<String> attrNames, Entity entity) throws IOException {
 
-        if (entity.getChange() == null && entity.getChange() == State.EQUAL) {
+        State entityState = entity.getChange();
+
+        if (entityState != null) {
+
+        } else {
+            LOG.warn("Unexpected state, state of entity not set. The processed entity id: " + entity.getId());
             return;
+        }
+
+        if (!printEqual) {
+        } else {
+
+            if (entityState == State.EQUAL) {
+                LOG.debug("Entity is equal and omitted. The processed entity id: " + entity.getId());
+                return;
+            }
+
         }
         String[] row = new String[attrNames.size() + 1];
         attrNames.sort(String::compareTo);
 
-        row[0] = entity.getChange().getCharacter();
+        row[0] = entityState.getCharacter();
         AtomicInteger i = new AtomicInteger();
         attrNames.forEach(name -> {
             StringBuilder valueString = new StringBuilder();
@@ -118,12 +141,21 @@ public class CsvReportPrinter implements Closeable {
                     });
                 });
             }
-            
+
             row[i.get() + 1] = valueString != null ? valueString.toString() : "[null]";
             i.getAndIncrement();
         });
 
         LOG.trace("Row produced: " + row.toString());
         printer.printRecord(row);
+    }
+
+
+    public void setOutPath(String outPath) {
+        this.outPath = outPath;
+    }
+
+    public void setPrintEqual(Boolean printEqual) {
+        this.printEqual = printEqual;
     }
 }
