@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework.cmd;
 
-import com.evolveum.midpoint.midcredible.framework.util.TableComparator;
+
+import com.evolveum.midpoint.midcredible.framework.comparator.db.TableComparator;
 
 /**
  * Created by Viliam Repan (lazyman).
