@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.midcredible.framework.comparator;
+package com.evolveum.midpoint.midcredible.framework.comparator.ldap;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.directory.api.ldap.model.exception.LdapException;

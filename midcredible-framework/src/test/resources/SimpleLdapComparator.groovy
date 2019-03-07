@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.midcredible.framework.comparator
 
+import com.evolveum.midpoint.midcredible.framework.comparator.ldap.Column
+import com.evolveum.midpoint.midcredible.framework.comparator.ldap.ColumnValue
+import com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapComparator
 import org.apache.commons.collections.CollectionUtils
 import org.apache.directory.api.ldap.model.exception.LdapException
 import org.apache.directory.api.ldap.model.message.SearchRequest

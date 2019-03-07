@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.midcredible.framework.comparator;
+package com.evolveum.midpoint.midcredible.framework.comparator.ldap;
 
 import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.framework.util.GroovyUtils;

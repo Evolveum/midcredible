@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.midcredible.framework.comparator;
+package com.evolveum.midpoint.midcredible.framework.comparator.ldap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
