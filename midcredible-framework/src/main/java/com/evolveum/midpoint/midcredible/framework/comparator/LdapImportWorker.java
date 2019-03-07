@@ -27,6 +27,8 @@ public class LdapImportWorker implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapImportWorker.class);
 
+    private static final StatusLogger statusLogger = new StatusLogger();
+
     private static final int LDAP_PAGE_SIZE = 1000;
 
     private static final int JDBC_BATCH_SIZE = 200;
@@ -60,7 +62,6 @@ public class LdapImportWorker implements Runnable {
 
     @Override
     public void run() {
-        long lastPrintoutTime = 0;
         int count = 0;
         try {
             List<Object[]> rows = new ArrayList<>();
@@ -90,10 +91,7 @@ public class LdapImportWorker implements Runnable {
 
                 count++;
 
-                if (lastPrintoutTime + LdapDbComparator.PRINTOUT_TIME_FREQUENCY < System.currentTimeMillis()) {
-                    printStatus(count);
-                    lastPrintoutTime = System.currentTimeMillis();
-                }
+                statusLogger.printStatus(LOG, "Imported {} entries to {}", count, table);
             }
 
             if (!rows.isEmpty()) {
@@ -102,16 +100,12 @@ public class LdapImportWorker implements Runnable {
         } catch (Exception ex) {
             throw new LdapComparatorException("Ldap import worker failed, reason: " + ex.getMessage(), ex);
         } finally {
-            printStatus(count);
+            statusLogger.printStatus(LOG, true, "Imported {} entries to {}", count, table);
         }
     }
 
     private void processColumnMap(Collection<Attribute> attributes) {
         attributes.forEach(a -> columns.add(a.getId()));
-    }
-
-    private void printStatus(int count) {
-        LOG.info("Imported {} entries to {}", count, table);
     }
 
     // todo handle NONE, SIMPLE, VLV paging

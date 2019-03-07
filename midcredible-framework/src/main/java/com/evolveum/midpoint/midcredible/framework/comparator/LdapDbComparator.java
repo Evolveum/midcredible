@@ -69,8 +69,6 @@ public class LdapDbComparator {
 
     static final String DN_ATTRIBUTE = "dn";
 
-    static final long PRINTOUT_TIME_FREQUENCY = 5000;
-
     private enum LDAP_DATASET {
         OLD, NEW
     }
@@ -114,6 +112,7 @@ public class LdapDbComparator {
             Set<String> columns = ConcurrentHashMap.newKeySet();
             columns.add(DN_ATTRIBUTE);
 
+            // todo how to handle cancelation?
             // fill in DB table
             LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, OLD_TABLE_NAME, oldCon, comparator, columns);
             LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, NEW_TABLE_NAME, newCon, comparator, columns);

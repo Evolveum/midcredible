@@ -28,6 +28,8 @@ public class LdapComparatorWorker implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapComparatorWorker.class);
 
+    private static final StatusLogger statusLogger = new StatusLogger();
+
     private int workerId;
 
     private DataSource dataSource;
@@ -59,6 +61,8 @@ public class LdapComparatorWorker implements Runnable {
 
     @Override
     public void run() {
+        int count = 0;
+
         try {
             ResultSet oldRs = createResultSet("old_data", workerId);
             ResultSet newRs = createResultSet("new_data", workerId);
@@ -70,6 +74,9 @@ public class LdapComparatorWorker implements Runnable {
             Map<Column, Set<Object>> newRow = null;
 
             while (true) {
+                count++;
+                statusLogger.printStatus(LOG, "Compared {} entries", count);
+
                 if (canceled) {
                     break;
                 }
@@ -120,6 +127,9 @@ public class LdapComparatorWorker implements Runnable {
             }
 
             while (newRs.next()) {
+                count++;
+                statusLogger.printStatus(LOG, "Compared {} entries", count);
+
                 if (canceled) {
                     break;
                 }
@@ -134,6 +144,8 @@ public class LdapComparatorWorker implements Runnable {
             }
         } catch (Exception ex) {
             throw new LdapComparatorException("Ldap comparator worker failed, reason: " + ex.getMessage(), ex);
+        } finally {
+            statusLogger.printStatus(LOG, true, "Compared {} entries", count);
         }
     }
 
