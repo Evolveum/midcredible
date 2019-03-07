@@ -29,6 +29,8 @@ public class LdapDbComparator {
 
     public static final String PROP_CSV_PATH = PROP_PREFIX + "csv.path";
 
+    public static final String PROP_CSV_PRINT_EQUAL = PROP_PREFIX + ".csv.equal";
+
     public static final String PROP_OLD_HOST = PROP_PREFIX + "old.host";
 
     public static final String PROP_OLD_PORT = PROP_PREFIX + "old.port";
@@ -101,6 +103,7 @@ public class LdapDbComparator {
                     properties.getProperty(PROP_COMPARATOR_SCRIPT));
 
             LOG.info("Setting up csv printer");
+            // todo setup printer
             printer.setupCsvPrinter(properties.getProperty(PROP_CSV_PATH));
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
