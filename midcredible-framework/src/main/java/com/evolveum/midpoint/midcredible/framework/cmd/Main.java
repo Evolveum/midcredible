@@ -1,10 +1,7 @@
-package com.evolveum.midpoint.midcredible.framework;
+package com.evolveum.midpoint.midcredible.framework.cmd;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import com.evolveum.midpoint.midcredible.framework.cmd.Action;
-import com.evolveum.midpoint.midcredible.framework.cmd.BaseOptions;
-import com.evolveum.midpoint.midcredible.framework.cmd.Command;
 import org.apache.commons.io.IOUtils;
 
 import java.io.PrintWriter;
@@ -14,11 +11,11 @@ import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         new Main().run(args);
     }
 
-    protected void run(String[] args) {
+    private void run(String[] args) {
         JCommander jc = setupCommandLineParser();
 
         try {
