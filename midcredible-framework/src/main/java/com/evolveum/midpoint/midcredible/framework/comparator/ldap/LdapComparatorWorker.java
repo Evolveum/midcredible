@@ -82,9 +82,8 @@ public class LdapComparatorWorker implements Runnable {
                 }
 
                 if (moveOld) {
-                    oldRs.next();
                     moveOld = false;
-                    oldRow = createEntryFromRow(oldRs);
+                    oldRow = oldRs.next() ? createEntryFromRow(oldRs) : null;
                 }
 
                 if (oldRow == null) {
@@ -92,9 +91,8 @@ public class LdapComparatorWorker implements Runnable {
                 }
 
                 if (moveNew) {
-                    newRs.next();
                     moveNew = false;
-                    newRow = createEntryFromRow(newRs);
+                    newRow = newRs.next() ? createEntryFromRow(newRs) : null;
                 }
 
                 if (newRow == null) {

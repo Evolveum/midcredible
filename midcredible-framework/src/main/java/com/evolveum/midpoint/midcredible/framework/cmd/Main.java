@@ -113,7 +113,7 @@ public class Main {
         }
 
         JCommander jc = builder.build();
-        jc.setProgramName("java [-Dloader.path=<jdbc_driver_jar_path>] -jar midcredible.jar");
+        jc.setProgramName("java [-Dlogback.configurationFile=logback.xml] [-Dloader.path=<jdbc_driver_jar_path>] -jar midcredible.jar");
         jc.setColumnSize(150);
 
         return jc;
