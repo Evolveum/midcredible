@@ -117,7 +117,7 @@ public class LdapDbComparator {
         } finally {
             executor.shutdown();
 
-//            cleanupH2();
+            cleanupH2();
         }
     }
 
