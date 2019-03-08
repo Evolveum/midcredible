@@ -16,10 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -34,7 +37,7 @@ public class LdapImportWorker implements Runnable {
 
     private static final int JDBC_BATCH_SIZE = 200;
 
-    private int workerCount;
+    private CompareLdapOptions options;
 
     private JdbcTemplate jdbc;
     private String table;
@@ -47,9 +50,9 @@ public class LdapImportWorker implements Runnable {
 
     private boolean canceled;
 
-    public LdapImportWorker(int workerCount, JdbcTemplate jdbc, String table, LdapConnection ldapConnection,
+    public LdapImportWorker(CompareLdapOptions options, JdbcTemplate jdbc, String table, LdapConnection ldapConnection,
                             LdapComparator comparator, Set<String> columns) {
-        this.workerCount = workerCount;
+        this.options = options;
         this.jdbc = jdbc;
         this.table = table;
         this.ldapConnection = ldapConnection;
@@ -76,14 +79,24 @@ public class LdapImportWorker implements Runnable {
 
                 Entry entry = cur.getEntry();
                 String dn = entry.getDn().getNormName().toLowerCase();
-                int worker = Math.abs(dn.hashCode()) % workerCount;
+                int worker = Math.abs(dn.hashCode()) % options.getWorkers();
 
                 LdifEntry e = new LdifEntry(entry);
                 String ldif = e.toString();
 
+                byte[] ldifBinary = ldif.getBytes(StandardCharsets.UTF_8.name());
+
+                if (options.isCompressData()) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    try (GZIPOutputStream gzip = new GZIPOutputStream(out)) {
+                        gzip.write(ldifBinary);
+                    }
+                    ldifBinary = out.toByteArray();
+                }
+
                 processColumnMap(entry.getAttributes());
 
-                rows.add(new Object[]{dn, worker, ldif});
+                rows.add(new Object[]{dn, worker, ldifBinary});
 
                 if (rows.size() >= JDBC_BATCH_SIZE) {
                     jdbc.batchUpdate("insert into " + table + " (dn, worker, entry) values (?,?,?)", rows);

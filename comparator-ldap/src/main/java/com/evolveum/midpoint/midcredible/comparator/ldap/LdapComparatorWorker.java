@@ -4,6 +4,7 @@ import com.evolveum.midpoint.midcredible.comparator.common.*;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.Column;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.ColumnValue;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.RowState;
+import org.apache.commons.io.IOUtils;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.ldif.LdapLdifException;
@@ -13,7 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,6 +25,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -30,6 +35,8 @@ public class LdapComparatorWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(LdapComparatorWorker.class);
 
     private static final StatusLogger statusLogger = new StatusLogger();
+
+    private CompareLdapOptions options;
 
     private int workerId;
 
@@ -45,8 +52,9 @@ public class LdapComparatorWorker implements Runnable {
 
     private boolean canceled;
 
-    public LdapComparatorWorker(int workerId, DataSource dataSource, CsvReportPrinter printer,
+    public LdapComparatorWorker(CompareLdapOptions options, int workerId, DataSource dataSource, CsvReportPrinter printer,
                                 LdapComparator comparator, Map<String, Column> columnMap) {
+        this.options = options;
         this.workerId = workerId;
         this.dataSource = dataSource;
         this.printer = printer;
@@ -239,14 +247,24 @@ public class LdapComparatorWorker implements Runnable {
         }
     }
 
-    private Map<Column, Set<Object>> createEntryFromRow(ResultSet rs) throws SQLException {
+    private Map<Column, Set<Object>> createEntryFromRow(ResultSet rs) throws SQLException, IOException {
         if (rs.isAfterLast()) {
             return null;
         }
 
         Map<Column, Set<Object>> result = new HashMap<>();
 
-        String strEntry = rs.getString("entry");
+        byte[] bEntry = rs.getBytes("entry");
+
+        if (options.isCompressData()) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(bEntry))) {
+                IOUtils.copy(gzip, out);
+                bEntry = out.toByteArray();
+            }
+        }
+
+        String strEntry = new String(bEntry, StandardCharsets.UTF_8);
 
         try (LdifReader reader = new LdifReader()) {
             List<LdifEntry> entries = reader.parseLdif(strEntry);

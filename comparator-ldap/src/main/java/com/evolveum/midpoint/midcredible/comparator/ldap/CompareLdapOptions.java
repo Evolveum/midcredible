@@ -58,6 +58,9 @@ public class CompareLdapOptions {
     public static final String P_COMPARE_SCRIPT_PATH = "-p";
     public static final String P_COMPARE_SCRIPT_PATH_LONG = "--compare-script-path";
 
+    public static final String P_COMPRESS_DATA = "-g";
+    public static final String P_COMPRESS_DATA_LONG = "--compress-data";
+
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
@@ -107,6 +110,9 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_COMPARE_SCRIPT_PATH, P_COMPARE_SCRIPT_PATH_LONG}, descriptionKey = "compare-ldap.scriptPath")
     private File compareScriptPath;
+
+    @Parameter(names = {P_COMPRESS_DATA, P_COMPRESS_DATA_LONG}, descriptionKey = "compare-ldap.compressData")
+    private boolean compressData;
 
     public String getOldHost() {
         return oldHost;
@@ -230,6 +236,14 @@ public class CompareLdapOptions {
 
     public CsvPrinterOptions getCsvPrinterOptions() {
         return csvPrinterOptions;
+    }
+
+    public boolean isCompressData() {
+        return compressData;
+    }
+
+    public void setCompressData(boolean compressData) {
+        this.compressData = compressData;
     }
 
     public String getOldPasswordOrAskPassword() {
