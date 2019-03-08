@@ -1,9 +1,8 @@
-import com.evolveum.midpoint.midcredible.framework.util.Comparator
 import com.evolveum.midpoint.midcredible.framework.util.Diff
 import com.evolveum.midpoint.midcredible.framework.util.State
 import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute
 import com.evolveum.midpoint.midcredible.framework.util.structural.Entity
-import com.evolveum.midpoint.midcredible.framework.util.structural.Label
+import Label
 
 class SimpleComparator implements Comparator {
 

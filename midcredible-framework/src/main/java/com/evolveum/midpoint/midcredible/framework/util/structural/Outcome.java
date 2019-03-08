@@ -1,8 +1,8 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
-import com.evolveum.midpoint.midcredible.framework.util.State;
+import com.evolveum.midpoint.midcredible.comparator.common.Attribute;
+import com.evolveum.midpoint.midcredible.comparator.common.State;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Outcome {

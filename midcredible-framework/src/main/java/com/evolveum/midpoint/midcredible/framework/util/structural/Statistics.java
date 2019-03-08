@@ -1,8 +1,8 @@
 package com.evolveum.midpoint.midcredible.framework.util.structural;
 
 import com.evolveum.midpoint.midcredible.framework.ResourceButler;
-import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
-import com.evolveum.midpoint.midcredible.framework.util.Diff;
+import com.evolveum.midpoint.midcredible.comparator.common.Attribute;
+import com.evolveum.midpoint.midcredible.comparator.common.Diff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

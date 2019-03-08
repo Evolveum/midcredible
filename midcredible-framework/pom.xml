@@ -15,28 +15,17 @@
     <artifactId>midcredible-framework</artifactId>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-
         <midpoint.rest.version>3.9-SNAPSHOT</midpoint.rest.version>
         <midpoint.version>3.9</midpoint.version>
-        <testng.version>6.14.3</testng.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <mariadb.version>2.3.0</mariadb.version>
-        <mysql.version>8.0.12</mysql.version>
-        <sqlserver.version>7.0.0.jre8</sqlserver.version>
-        <h2.version>1.4.198</h2.version>
-        <spring.version>5.0.7.RELEASE</spring.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.2.3</logback.version>
-        <commons.csv.version>1.6</commons.csv.version>
-        <directory.api.version>2.0.0.AM2</directory.api.version>
-        <hikaricp.version>3.2.0</hikaricp.version>
-        <jcommander.version>1.72</jcommander.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <!-- todo should not be here probably -->
+            <groupId>com.evolveum.midpoint.midcredible</groupId>
+            <artifactId>comparator-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- MIDPOINT -->
         <dependency>
             <groupId>com.evolveum.midpoint.client</groupId>
@@ -67,7 +56,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -79,37 +67,33 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
         </dependency>
 
         <!-- LOGGING -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
+        </dependency>
+
+        <!-- LDAP -->
+        <dependency>
+            <groupId>org.apache.directory.api</groupId>
+            <artifactId>api-all</artifactId>
         </dependency>
 
         <!-- JDBC -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>${hikaricp.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -134,123 +118,10 @@
             <version>${sqlserver.version}</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
-        </dependency>
-
-        <!-- CSV -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>${commons.csv.version}</version>
-        </dependency>
-
-        <!-- LDAP -->
-        <dependency>
-            <groupId>org.apache.directory.api</groupId>
-            <artifactId>api-all</artifactId>
-            <version>${directory.api.version}</version>
-        </dependency>
-
-        <!--GROOVY-->
-        <!--dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-        </dependency-->
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-jsr223</artifactId>
-            <version>2.5.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>${jcommander.version}</version>
-        </dependency>
 
         <!-- TEST DEPENDENCIES -->
 
         <!--JDBC DEPENDENCIES-->
 
     </dependencies>
-
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources/</directory>
-                <includes>
-                    <include>version</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources/</directory>
-                <excludes>
-                    <exclude>version</exclude>
-                </excludes>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>com.lukegb.mojo</groupId>
-                <artifactId>gitdescribe-maven-plugin</artifactId>
-                <version>1.3</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>gitdescribe</goal>
-                        </goals>
-                        <id>git-describe</id>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <outputPrefix></outputPrefix>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>executable</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <finalName>midcredible</finalName>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>2.1.3.RELEASE</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>repackage</goal>
-                                </goals>
-                                <configuration>
-                                    <mainClass>com.evolveum.midpoint.midcredible.framework.Main</mainClass>
-                                    <classifier>executable</classifier>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
