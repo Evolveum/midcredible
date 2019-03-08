@@ -21,7 +21,7 @@ public class CsvPrinterOptions {
     private File path;
 
     @Parameter(names = {P_PRINT_EQUAL, P_PRINT_EQUAL_LONG}, descriptionKey = "csvprinter.printEqual")
-    private boolean printEqual;
+    private boolean printEqual = false;
 
     public File getPath() {
         return path;

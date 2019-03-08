@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.comparator.ldap;
 
+import com.evolveum.midpoint.midcredible.comparator.common.StatusLogger;
 import org.apache.directory.api.ldap.extras.controls.vlv.VirtualListViewRequest;
 import org.apache.directory.api.ldap.extras.controls.vlv.VirtualListViewRequestImpl;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;

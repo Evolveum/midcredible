@@ -1,9 +1,9 @@
 package com.evolveum.midpoint.midcredible.comparator.ldap;
 
-import com.evolveum.midpoint.midcredible.comparator.common.CsvReportPrinter;
-import com.evolveum.midpoint.midcredible.comparator.common.Diff;
-import com.evolveum.midpoint.midcredible.comparator.common.Entity;
-import com.evolveum.midpoint.midcredible.comparator.common.State;
+import com.evolveum.midpoint.midcredible.comparator.common.*;
+import com.evolveum.midpoint.midcredible.comparator.ldap.util.Column;
+import com.evolveum.midpoint.midcredible.comparator.ldap.util.ColumnValue;
+import com.evolveum.midpoint.midcredible.comparator.ldap.util.RowState;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.ldif.LdapLdifException;
@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,9 +64,8 @@ public class LdapComparatorWorker implements Runnable {
     public void run() {
         int count = 0;
 
-        try {
-            ResultSet oldRs = createResultSet("old_data", workerId);
-            ResultSet newRs = createResultSet("new_data", workerId);
+        try (ResultSet oldRs = createResultSet("old_data", workerId);
+             ResultSet newRs = createResultSet("new_data", workerId)) {
 
             boolean moveOld = true;
             boolean moveNew = true;

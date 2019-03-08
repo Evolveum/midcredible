@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.midcredible.comparator.ldap;
+package com.evolveum.midpoint.midcredible.comparator.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,6 @@ public class StatusLogger {
     private static final long PRINTOUT_TIME_FREQUENCY = 5000L;
 
     private ThreadLocal<Long> lastPrintoutTime = new ThreadLocal<>();
-
 
     public void printStatus(String message, Object... args) {
         printStatus(LOG, false, message, args);

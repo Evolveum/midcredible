@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.midcredible.comparator.ldap;
+package com.evolveum.midpoint.midcredible.comparator.ldap.util;
 
 /**
  * Created by Viliam Repan (lazyman).

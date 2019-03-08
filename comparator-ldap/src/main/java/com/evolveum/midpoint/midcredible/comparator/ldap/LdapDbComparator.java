@@ -3,6 +3,7 @@ package com.evolveum.midpoint.midcredible.comparator.ldap;
 import com.evolveum.midpoint.midcredible.comparator.common.CsvPrinterOptions;
 import com.evolveum.midpoint.midcredible.comparator.common.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.comparator.common.GroovyUtils;
+import com.evolveum.midpoint.midcredible.comparator.ldap.util.Column;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -27,10 +28,6 @@ import java.util.concurrent.Future;
 public class LdapDbComparator {
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapDbComparator.class);
-
-    private static final String DEFAULT_DB_PATH = "./data";
-
-    private static final String DEFAULT_CSV_EQUAL = "true";
 
     private static final String OLD_TABLE_NAME = "old_data";
 
@@ -57,12 +54,11 @@ public class LdapDbComparator {
     public void execute() {
         int workerCount = options.getWorkers();
 
-        int poolSize = workerCount + 2;
-        executor = Executors.newFixedThreadPool(poolSize);
+        executor = Executors.newFixedThreadPool(workerCount + 2);
 
         LOG.info("Initializing LDAP connections");
 
-        try (HikariDataSource ds = createDataSource(poolSize);
+        try (HikariDataSource ds = createDataSource(workerCount + 4);
              CsvReportPrinter printer = new CsvReportPrinter();
              LdapConnection oldCon = setupConnection(LDAP_DATASET.OLD);
              LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
