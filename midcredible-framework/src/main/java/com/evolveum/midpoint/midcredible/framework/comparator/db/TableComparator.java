@@ -157,7 +157,7 @@ public class TableComparator implements DatabaseComparison {
 
             LOG.info("Number of columns fetched: " + columns);
 
-            for (int i = 1; i < columns; i++) {
+            for (int i = 1; i <= columns; i++) {
 
                 attributeList.add(md.getColumnName(i));
             }
@@ -166,7 +166,6 @@ public class TableComparator implements DatabaseComparison {
             LOG.error("An error has occurred: " + e.getLocalizedMessage());
             throw e;
         }
-
 
         Entity oldRow = null;
         Entity newRow;
@@ -266,7 +265,7 @@ public class TableComparator implements DatabaseComparison {
         ResultSetMetaData md = rs.getMetaData();
         int columns = md.getColumnCount();
 
-        for (int i = 1; i < columns; i++) {
+        for (int i = 1; i <= columns; i++) {
 
             String colName = md.getColumnName(i);
 
@@ -274,7 +273,16 @@ public class TableComparator implements DatabaseComparison {
             Object object = rs.getObject(i);
             attr.setInitialSingleValue(object);
 
-            LOG.trace("Setting up attribute: " + colName + " with value: " + object.toString());
+
+            if (object!=null) {
+
+                LOG.trace("Setting up attribute: " + colName + " with value: " + object.toString());
+            }
+            else{
+
+                LOG.trace("Setting up attribute: " + colName + " with value: [NULL]");
+            }
+
             Map map = entity.getAttrs();
             map.put(colName, attr);
             entity.setAttrs(map);
@@ -299,7 +307,7 @@ public class TableComparator implements DatabaseComparison {
         int columns = md.getColumnCount();
 
         Map<Label, Object> map = new HashMap<>();
-        for (int i = 1; i < columns; i++) {
+        for (int i = 1; i <= columns; i++) {
             map.put(new Label(md.getColumnName(i), i), rs.getObject(i));
         }
 
