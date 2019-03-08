@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.comparator;
 
+import com.evolveum.midpoint.midcredible.framework.cmd.CompareLdapOptions;
 import com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDbComparator;
 import org.testng.annotations.Test;
 
@@ -14,6 +15,8 @@ public class LdapComparatorTest {
 
     @Test
     public void simple() throws Exception {
+        CompareLdapOptions opts = new CompareLdapOptions();
+
         Properties props = new Properties();
 
         props.setProperty(PROP_CSV_PATH, "./target/out.csv");
@@ -36,6 +39,6 @@ public class LdapComparatorTest {
 
         props.setProperty(PROP_CSV_PRINT_EQUAL, "false");
 
-        new LdapDbComparator(props).execute();
+        new LdapDbComparator(opts).execute();
     }
 }

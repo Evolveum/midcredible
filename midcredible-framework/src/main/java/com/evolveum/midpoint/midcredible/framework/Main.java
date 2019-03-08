@@ -109,7 +109,6 @@ public class Main {
         BaseOptions base = new BaseOptions();
 
         JCommander.Builder builder = JCommander.newBuilder()
-                .expandAtSign(false)
                 .addObject(base);
 
         for (Command cmd : Command.values()) {

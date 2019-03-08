@@ -2,6 +2,7 @@ package com.evolveum.midpoint.midcredible.framework.cmd;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 
 import java.io.File;
 
@@ -9,7 +10,7 @@ import java.io.File;
  * Created by Viliam Repan (lazyman).
  */
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "compare-ldap")
-public class CompareLdapOptions extends CompareCommonOptions {
+public class CompareLdapOptions {
 
     public static final String P_OLD_HOST = "-oh";
     public static final String P_OLD_HOST_LONG = "--old-host";
@@ -52,6 +53,9 @@ public class CompareLdapOptions extends CompareCommonOptions {
 
     public static final String P_DB_PATH = "-d";
     public static final String P_DB_PATH_LONG = "--db-path";
+
+    @ParametersDelegate
+    private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
     @Parameter(names = {P_OLD_HOST, P_OLD_HOST_LONG}, descriptionKey = "compare-ldap.old.host")
     private String oldHost = "localhost";
@@ -101,55 +105,115 @@ public class CompareLdapOptions extends CompareCommonOptions {
         return oldHost;
     }
 
+    public void setOldHost(String oldHost) {
+        this.oldHost = oldHost;
+    }
+
     public int getOldPort() {
         return oldPort;
+    }
+
+    public void setOldPort(int oldPort) {
+        this.oldPort = oldPort;
     }
 
     public boolean isOldSecured() {
         return oldSecured;
     }
 
+    public void setOldSecured(boolean oldSecured) {
+        this.oldSecured = oldSecured;
+    }
+
     public String getOldUsername() {
         return oldUsername;
+    }
+
+    public void setOldUsername(String oldUsername) {
+        this.oldUsername = oldUsername;
     }
 
     public String getOldPassword() {
         return oldPassword;
     }
 
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
     public String getOldAskPassword() {
         return oldAskPassword;
+    }
+
+    public void setOldAskPassword(String oldAskPassword) {
+        this.oldAskPassword = oldAskPassword;
     }
 
     public String getNewHost() {
         return newHost;
     }
 
+    public void setNewHost(String newHost) {
+        this.newHost = newHost;
+    }
+
     public int getNewPort() {
         return newPort;
+    }
+
+    public void setNewPort(int newPort) {
+        this.newPort = newPort;
     }
 
     public boolean isNewSecured() {
         return newSecured;
     }
 
+    public void setNewSecured(boolean newSecured) {
+        this.newSecured = newSecured;
+    }
+
     public String getNewUsername() {
         return newUsername;
+    }
+
+    public void setNewUsername(String newUsername) {
+        this.newUsername = newUsername;
     }
 
     public String getNewPassword() {
         return newPassword;
     }
 
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+
     public String getNewAskPassword() {
         return newAskPassword;
+    }
+
+    public void setNewAskPassword(String newAskPassword) {
+        this.newAskPassword = newAskPassword;
     }
 
     public int getWorkers() {
         return workers;
     }
 
+    public void setWorkers(int workers) {
+        this.workers = workers;
+    }
+
     public File getDbPath() {
         return dbPath;
+    }
+
+    public void setDbPath(File dbPath) {
+        this.dbPath = dbPath;
+    }
+
+    public CsvPrinterOptions getCsvPrinterOptions() {
+        return csvPrinterOptions;
     }
 }

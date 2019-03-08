@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.comparator.ldap;
 
+import com.evolveum.midpoint.midcredible.framework.cmd.CompareLdapOptions;
 import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.framework.util.GroovyUtils;
 import com.zaxxer.hikari.HikariConfig;
@@ -75,14 +76,15 @@ public class LdapDbComparator {
         OLD, NEW
     }
 
-    private Properties properties;
+    private Properties properties;  // todo remove
+    private CompareLdapOptions options;
 
     private ExecutorService executor;
 
     private LdapComparator comparator;
 
-    public LdapDbComparator(Properties properties) {
-        this.properties = properties;
+    public LdapDbComparator(CompareLdapOptions options) {
+        this.options = options;
     }
 
     public void execute() {
