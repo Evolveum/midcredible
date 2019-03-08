@@ -33,8 +33,6 @@ public class LdapComparatorTest {
         opts.setCompareScriptPath(new File("./src/test/resources/SimpleLdapComparator.groovy"));
         opts.setWorkers(2);
 
-        opts.setCompressData(true);
-
         new LdapDbComparator(opts).execute();
     }
 }

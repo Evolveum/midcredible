@@ -66,6 +66,8 @@ public class LdapImportWorker implements Runnable {
 
     @Override
     public void run() {
+        String[] ignoredAttributes = buildIgnoredAttributes();
+
         int count = 0;
         try {
             List<Object[]> rows = new ArrayList<>();
@@ -78,6 +80,16 @@ public class LdapImportWorker implements Runnable {
                 }
 
                 Entry entry = cur.getEntry();
+
+                if (ignoredAttributes != null) {
+                    for (String ignored : ignoredAttributes) {
+                        if (!entry.containsAttribute(ignored)) {
+                            continue;
+                        }
+                        entry.removeAttributes(ignored);
+                    }
+                }
+
                 String dn = entry.getDn().getNormName().toLowerCase();
                 int worker = Math.abs(dn.hashCode()) % options.getWorkers();
 
@@ -116,6 +128,20 @@ public class LdapImportWorker implements Runnable {
         } finally {
             statusLogger.printStatus(LOG, true, "Imported {} entries to {}", count, table);
         }
+    }
+
+    private String[] buildIgnoredAttributes() {
+        String[] ignoredAttributes = null;
+
+        Set<String> attrs = comparator.getAttributesToIgnore();
+        attrs.remove(null);
+        attrs.remove("");
+        if (attrs != null && !attrs.isEmpty()) {
+            ignoredAttributes = new String[attrs.size()];
+            attrs.toArray(ignoredAttributes);
+        }
+
+        return ignoredAttributes;
     }
 
     private void processColumnMap(Collection<Attribute> attributes) {

@@ -93,7 +93,7 @@ public class LdapDbComparator {
             importOldFuture.get();
             importNewFuture.get();
 
-            LOG.info("Found {} attributes in total", columns.size());
+            LOG.info("Found {} attributes in total {}", columns.size(), columns);
             Map<String, Column> columnMap = buildColumnMap(columns);
 
             LOG.info("Starting compare process");
