@@ -1,12 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.util;
 
-import com.evolveum.midpoint.midcredible.framework.util.structural.Attribute;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Entity;
-import com.evolveum.midpoint.midcredible.framework.util.structural.Label;
-
-import java.util.Map;
-
-public class ComparatorImpl{
+public class ComparatorImpl {
 
 //
 //    private final ResourceButler producedResource;

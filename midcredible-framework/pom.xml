@@ -15,28 +15,17 @@
     <artifactId>midcredible-framework</artifactId>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-
         <midpoint.rest.version>3.9-SNAPSHOT</midpoint.rest.version>
         <midpoint.version>3.9</midpoint.version>
-        <testng.version>6.14.3</testng.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <mariadb.version>2.3.0</mariadb.version>
-        <mysql.version>8.0.12</mysql.version>
-        <sqlserver.version>7.0.0.jre8</sqlserver.version>
-        <h2.version>1.4.198</h2.version>
-        <spring.version>5.0.7.RELEASE</spring.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.2.3</logback.version>
-        <commons.csv.version>1.6</commons.csv.version>
-        <directory.api.version>2.0.0.AM2</directory.api.version>
-        <hikaricp.version>3.2.0</hikaricp.version>
-        <jcommander.version>1.72</jcommander.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <!-- todo should not be here probably -->
+            <groupId>com.evolveum.midpoint.midcredible</groupId>
+            <artifactId>comparator-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- MIDPOINT -->
         <dependency>
             <groupId>com.evolveum.midpoint.client</groupId>
@@ -151,7 +140,6 @@
         <dependency>
             <groupId>org.apache.directory.api</groupId>
             <artifactId>api-all</artifactId>
-            <version>${directory.api.version}</version>
         </dependency>
 
         <!--GROOVY-->
