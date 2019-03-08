@@ -245,6 +245,25 @@
                                 <configuration>
                                     <mainClass>com.evolveum.midpoint.midcredible.framework.cmd.Main</mainClass>
                                     <classifier>executable</classifier>
+                                    <!-- todo fix this! very bad way to remove dependencies that shouldn't be in cmd fat jar-->
+                                    <excludeGroupIds>
+                                        com.evolveum.midpoint.client,
+                                        com.evolveum.midpoint.infra,
+                                        mysql,
+                                        org.mariadb.jdbc,
+                                        org.testng,
+                                        org.apache.cxf,
+                                        com.fasterxml.jackson.core,
+                                        com.sun.xml.bind,
+                                        javax.xml.bind,
+                                        org.apache.lucene,
+                                        net.sf.jasperreports,
+                                        com.microsoft.sqlserver,
+                                        com.google.guava,
+                                        com.ibm.icu,
+                                        org.forgerock.opendj,
+                                        org.apache.derby
+                                    </excludeGroupIds>
                                 </configuration>
                             </execution>
                         </executions>
