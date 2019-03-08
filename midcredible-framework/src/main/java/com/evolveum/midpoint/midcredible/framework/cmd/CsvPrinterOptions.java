@@ -8,17 +8,19 @@ import java.io.File;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Parameters(resourceBundle = "messages", commandDescriptionKey = "csvprinter")
+@Parameters(resourceBundle = "messages")
 public class CsvPrinterOptions {
 
     public static final String P_PATH = "-p";
     public static final String P_PATH_LONG = "--path";
 
+    public static final String P_PRINT_EQUAL = "-e";
+    public static final String P_PRINT_EQUAL_LONG = "--print-equal";
 
-
-    @Parameter(names = {P_PATH,P_PATH_LONG}, descriptionKey = "csvprinter.path")
+    @Parameter(names = {P_PATH, P_PATH_LONG}, descriptionKey = "csvprinter.path")
     private File path;
 
+    @Parameter(names = {P_PRINT_EQUAL, P_PRINT_EQUAL_LONG}, descriptionKey = "csvprinter.printEqual")
     private boolean printEqual;
 
     public File getPath() {
