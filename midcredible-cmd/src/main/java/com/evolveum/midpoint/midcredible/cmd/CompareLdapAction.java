@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.midcredible.cmd;
 
-import com.evolveum.midpoint.midcredible.framework.comparator.ldap.CompareLdapOptions;
-import com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDbComparator;
+import com.evolveum.midpoint.midcredible.comparator.ldap.CompareLdapOptions;
+import com.evolveum.midpoint.midcredible.comparator.ldap.LdapDbComparator;
 
 /**
  * Created by Viliam Repan (lazyman).

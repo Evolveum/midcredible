@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework;
 
-import com.evolveum.midpoint.midcredible.framework.comparator.common.Entity;
+import com.evolveum.midpoint.midcredible.comparator.common.Entity;
 import com.evolveum.midpoint.midcredible.framework.util.ComparatorImpl;
 import com.evolveum.midpoint.midcredible.framework.util.QueryBuilder;
 import com.evolveum.midpoint.midcredible.framework.util.structural.Statistics;

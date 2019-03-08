@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework.comparator.ldap;
 
+import com.evolveum.midpoint.midcredible.comparator.ldap.CompareLdapOptions;
+import com.evolveum.midpoint.midcredible.comparator.ldap.LdapDbComparator;
 import org.testng.annotations.Test;
 
 import java.io.File;
