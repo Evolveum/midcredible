@@ -54,6 +54,9 @@ public class CompareLdapOptions {
     public static final String P_DB_PATH = "-d";
     public static final String P_DB_PATH_LONG = "--db-path";
 
+    public static final String P_COMPARE_SCRIPT_PATH = "-p";
+    public static final String P_COMPARE_SCRIPT_PATH_LONG = "--compare-script-path";
+
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
@@ -100,6 +103,9 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_DB_PATH, P_DB_PATH_LONG}, descriptionKey = "compare-ldap.dbPath")
     private File dbPath = new File("./data");
+
+    @Parameter(names = {P_COMPARE_SCRIPT_PATH, P_COMPARE_SCRIPT_PATH_LONG}, descriptionKey = "compare-ldap.scriptPath")
+    private File compareScriptPath;
 
     public String getOldHost() {
         return oldHost;
@@ -213,7 +219,33 @@ public class CompareLdapOptions {
         this.dbPath = dbPath;
     }
 
+    public File getCompareScriptPath() {
+        return compareScriptPath;
+    }
+
+    public void setCompareScriptPath(File compareScriptPath) {
+        this.compareScriptPath = compareScriptPath;
+    }
+
     public CsvPrinterOptions getCsvPrinterOptions() {
         return csvPrinterOptions;
+    }
+
+    public String getOldPasswordOrAskPassword() {
+        String password = getOldPassword();
+        if (password == null) {
+            password = getOldAskPassword();
+        }
+
+        return password;
+    }
+
+    public String getNewPasswordOrAskPassword() {
+        String password = getNewPassword();
+        if (password == null) {
+            password = getNewAskPassword();
+        }
+
+        return password;
     }
 }

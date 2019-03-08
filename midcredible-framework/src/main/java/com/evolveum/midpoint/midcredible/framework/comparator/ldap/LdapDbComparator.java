@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.midcredible.framework.comparator.ldap;
 
 import com.evolveum.midpoint.midcredible.framework.cmd.CompareLdapOptions;
+import com.evolveum.midpoint.midcredible.framework.cmd.CsvPrinterOptions;
 import com.evolveum.midpoint.midcredible.framework.util.CsvReportPrinter;
 import com.evolveum.midpoint.midcredible.framework.util.GroovyUtils;
 import com.zaxxer.hikari.HikariConfig;
@@ -26,38 +27,6 @@ import java.util.concurrent.Future;
  */
 public class LdapDbComparator {
 
-    private static final String PROP_PREFIX = "comparator.ldap.";
-
-    public static final String PROP_CSV_PATH = PROP_PREFIX + "csv.path";
-
-    public static final String PROP_CSV_PRINT_EQUAL = PROP_PREFIX + ".csv.equal";
-
-    public static final String PROP_OLD_HOST = PROP_PREFIX + "old.host";
-
-    public static final String PROP_OLD_PORT = PROP_PREFIX + "old.port";
-
-    public static final String PROP_OLD_SECURED = PROP_PREFIX + "old.secured";
-
-    public static final String PROP_OLD_USERNAME = PROP_PREFIX + "old.username";
-
-    public static final String PROP_OLD_PASSWORD = PROP_PREFIX + "old.password";
-
-    public static final String PROP_NEW_HOST = PROP_PREFIX + "new.host";
-
-    public static final String PROP_NEW_PORT = PROP_PREFIX + "new.port";
-
-    public static final String PROP_NEW_SECURED = PROP_PREFIX + "new.secured";
-
-    public static final String PROP_NEW_USERNAME = PROP_PREFIX + "new.username";
-
-    public static final String PROP_NEW_PASSWORD = PROP_PREFIX + "new.password";
-
-    public static final String PROP_COMPARATOR_SCRIPT = PROP_PREFIX + "script";
-
-    public static final String PROP_WORKER_COUNT = PROP_PREFIX + "workers";
-
-    public static final String PROP_DB_PATH = PROP_PREFIX + "db.path";
-
     private static final Logger LOG = LoggerFactory.getLogger(LdapDbComparator.class);
 
     private static final String DEFAULT_DB_PATH = "./data";
@@ -76,7 +45,6 @@ public class LdapDbComparator {
         OLD, NEW
     }
 
-    private Properties properties;  // todo remove
     private CompareLdapOptions options;
 
     private ExecutorService executor;
@@ -88,7 +56,7 @@ public class LdapDbComparator {
     }
 
     public void execute() {
-        int workerCount = Integer.parseInt(properties.getProperty(PROP_WORKER_COUNT, "1"));
+        int workerCount = options.getWorkers();
 
         int poolSize = workerCount + 2;
         executor = Executors.newFixedThreadPool(poolSize);
@@ -101,13 +69,12 @@ public class LdapDbComparator {
              LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
 
             LOG.info("Compiling comparator groovy script");
-            comparator = GroovyUtils.createTypeInstance(LdapComparator.class,
-                    properties.getProperty(PROP_COMPARATOR_SCRIPT));
+            comparator = GroovyUtils.createTypeInstance(LdapComparator.class, options.getCompareScriptPath().getPath());
 
             LOG.info("Setting up csv printer");
-            printer.setOutPath(properties.getProperty(PROP_CSV_PATH));
-            String printEqual = properties.getProperty(PROP_CSV_PRINT_EQUAL, DEFAULT_CSV_EQUAL);
-            printer.setPrintEqual(Boolean.parseBoolean(printEqual));
+            CsvPrinterOptions csvOpts = options.getCsvPrinterOptions();
+            printer.setOutPath(csvOpts.getPath().getPath());
+            printer.setPrintEqual(csvOpts.isPrintEqual());
             printer.init();
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
@@ -165,7 +132,7 @@ public class LdapDbComparator {
     }
 
     private String getDBPath() {
-        return properties.getProperty(PROP_DB_PATH, DEFAULT_DB_PATH);
+        return options.getDbPath().getPath();
     }
 
     private HikariDataSource createDataSource(int maxPoolSize) throws SQLException {
@@ -224,18 +191,18 @@ public class LdapDbComparator {
 
         switch (dataset) {
             case OLD:
-                host = properties.getProperty(PROP_OLD_HOST, "localhost");
-                port = Integer.parseInt(properties.getProperty(PROP_OLD_PORT, "389"));
-                secured = Boolean.parseBoolean(properties.getProperty(PROP_OLD_SECURED, "false"));
-                username = properties.getProperty(PROP_OLD_USERNAME);
-                password = properties.getProperty(PROP_OLD_PASSWORD);
+                host = options.getOldHost();
+                port = options.getOldPort();
+                secured = options.isOldSecured();
+                username = options.getOldUsername();
+                password = options.getOldPasswordOrAskPassword();
                 break;
             case NEW:
-                host = properties.getProperty(PROP_NEW_HOST, "localhost");
-                port = Integer.parseInt(properties.getProperty(PROP_NEW_PORT, "389"));
-                secured = Boolean.parseBoolean(properties.getProperty(PROP_NEW_SECURED, "false"));
-                username = properties.getProperty(PROP_NEW_USERNAME);
-                password = properties.getProperty(PROP_NEW_PASSWORD);
+                host = options.getNewHost();
+                port = options.getNewPort();
+                secured = options.isNewSecured();
+                username = options.getNewUsername();
+                password = options.getNewPasswordOrAskPassword();
                 break;
         }
 

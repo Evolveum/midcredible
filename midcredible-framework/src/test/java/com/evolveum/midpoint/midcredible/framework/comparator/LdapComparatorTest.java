@@ -4,9 +4,7 @@ import com.evolveum.midpoint.midcredible.framework.cmd.CompareLdapOptions;
 import com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDbComparator;
 import org.testng.annotations.Test;
 
-import java.util.Properties;
-
-import static com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDbComparator.*;
+import java.io.File;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -14,30 +12,26 @@ import static com.evolveum.midpoint.midcredible.framework.comparator.ldap.LdapDb
 public class LdapComparatorTest {
 
     @Test
-    public void simple() throws Exception {
+    public void simpleCompare() throws Exception {
         CompareLdapOptions opts = new CompareLdapOptions();
 
-        Properties props = new Properties();
+        opts.getCsvPrinterOptions().setPath(new File("./target/out.csv"));
+        opts.getCsvPrinterOptions().setPrintEqual(false);
 
-        props.setProperty(PROP_CSV_PATH, "./target/out.csv");
+        opts.setOldHost("localhost");
+        opts.setOldPort(1389);
+        opts.setOldSecured(false);
+        opts.setOldUsername("cn=admin,dc=example,dc=com");
+        opts.setOldPassword("admin");
 
-        props.setProperty(PROP_OLD_HOST, "localhost");
-        props.setProperty(PROP_OLD_PORT, "1389");
-        props.setProperty(PROP_OLD_SECURED, "false");
-        props.setProperty(PROP_OLD_USERNAME, "cn=admin,dc=example,dc=com");
-        props.setProperty(PROP_OLD_PASSWORD, "admin");
+        opts.setNewHost("localhost");
+        opts.setNewPort(2389);
+        opts.setNewSecured(false);
+        opts.setNewUsername("cn=admin,dc=example,dc=com");
+        opts.setNewPassword("admin");
 
-        props.setProperty(PROP_NEW_HOST, "localhost");
-        props.setProperty(PROP_NEW_PORT, "2389");
-        props.setProperty(PROP_NEW_SECURED, "false");
-        props.setProperty(PROP_NEW_USERNAME, "cn=admin,dc=example,dc=com");
-        props.setProperty(PROP_NEW_PASSWORD, "admin");
-
-        props.setProperty(PROP_COMPARATOR_SCRIPT, "./src/test/resources/SimpleLdapComparator.groovy");
-
-        props.setProperty(PROP_WORKER_COUNT, "2");
-
-        props.setProperty(PROP_CSV_PRINT_EQUAL, "false");
+        opts.setCompareScriptPath(new File("./src/test/resources/SimpleLdapComparator.groovy"));
+        opts.setWorkers(2);
 
         new LdapDbComparator(opts).execute();
     }

@@ -11,7 +11,7 @@ import java.io.File;
 @Parameters(resourceBundle = "messages")
 public class CsvPrinterOptions {
 
-    public static final String P_PATH = "-p";
+    public static final String P_PATH = "-c";
     public static final String P_PATH_LONG = "--path";
 
     public static final String P_PRINT_EQUAL = "-e";
