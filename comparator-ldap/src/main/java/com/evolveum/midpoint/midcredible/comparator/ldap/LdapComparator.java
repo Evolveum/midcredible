@@ -55,6 +55,10 @@ public abstract class LdapComparator {
         return Paging.NONE;
     }
 
+    public Set<String> getAttributesToIgnore() {
+        return new HashSet<>();
+    }
+
     protected Map<Column, List<ColumnValue>> compareData(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry,
                                                          Set<String> attributesToIgnore) {
         if (attributesToIgnore == null) {
@@ -120,7 +124,9 @@ public abstract class LdapComparator {
         return changes;
     }
 
-    public abstract SearchRequest buildSearchRequest() throws LdapException;
+    public Map<Column, List<ColumnValue>> compareData(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry) {
+        return compareData(oldEntry, newEntry, getAttributesToIgnore());
+    }
 
-    public abstract Map<Column, List<ColumnValue>> compareData(Map<Column, Set<Object>> oldEntry, Map<Column, Set<Object>> newEntry);
+    public abstract SearchRequest buildSearchRequest() throws LdapException;
 }

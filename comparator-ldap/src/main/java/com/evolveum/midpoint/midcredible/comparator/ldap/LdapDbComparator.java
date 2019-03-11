@@ -82,8 +82,8 @@ public class LdapDbComparator {
 
             // todo how to handle cancelation?
             // fill in DB table
-            LdapImportWorker importOldWorker = new LdapImportWorker(workerCount, jdbc, OLD_TABLE_NAME, oldCon, comparator, columns);
-            LdapImportWorker importNewWorker = new LdapImportWorker(workerCount, jdbc, NEW_TABLE_NAME, newCon, comparator, columns);
+            LdapImportWorker importOldWorker = new LdapImportWorker(options, jdbc, OLD_TABLE_NAME, oldCon, comparator, columns);
+            LdapImportWorker importNewWorker = new LdapImportWorker(options, jdbc, NEW_TABLE_NAME, newCon, comparator, columns);
 
             LOG.info("Starting import from LDAP");
             Future importOldFuture = executor.submit(importOldWorker);
@@ -93,14 +93,14 @@ public class LdapDbComparator {
             importOldFuture.get();
             importNewFuture.get();
 
-            LOG.info("Found {} attributes in total", columns.size());
+            LOG.info("Found {} attributes in total {}", columns.size(), columns);
             Map<String, Column> columnMap = buildColumnMap(columns);
 
             LOG.info("Starting compare process");
             List<LdapComparatorWorker> compareWorkers = new ArrayList<>();
             List<Future> comparatorFutures = new ArrayList<>();
             for (int i = 0; i < workerCount; i++) {
-                LdapComparatorWorker worker = new LdapComparatorWorker(i, ds, printer, comparator, columnMap);
+                LdapComparatorWorker worker = new LdapComparatorWorker(options, i, ds, printer, comparator, columnMap);
                 compareWorkers.add(worker);
 
                 comparatorFutures.add(executor.submit(worker));
@@ -152,7 +152,7 @@ public class LdapDbComparator {
         sb.append("(");
         sb.append("dn varchar(1000),");
         sb.append("worker tinyint not null,");
-        sb.append("entry varchar not null,");
+        sb.append("entry binary not null,");
         sb.append("primary key (dn)");
         sb.append(")");
 
