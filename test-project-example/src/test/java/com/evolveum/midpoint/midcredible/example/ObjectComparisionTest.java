@@ -1,7 +1,8 @@
 package com.evolveum.midpoint.midcredible.example;
 
+import com.evolveum.midpoint.midcredible.cmd.CompareTableAction;
+import com.evolveum.midpoint.midcredible.comparator.table.CompareTableOptions;
 import com.evolveum.midpoint.midcredible.framework.test.ButlerBaseTest;
-import com.evolveum.midpoint.midcredible.framework.comparator.db.TableComparator;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -9,8 +10,6 @@ import org.testng.annotations.Test;
 
 @ContextConfiguration(classes = com.evolveum.midpoint.midcredible.example.ContextConfiguration.class)
 public class ObjectComparisionTest extends ButlerBaseTest {
-
-    private static final String PROPERTIES = "./src/test/resources/configuration_test.properties";
 
     @BeforeClass
     @Override
@@ -20,8 +19,15 @@ public class ObjectComparisionTest extends ButlerBaseTest {
 
     @Test
     public void testCompareAllResourceJdbc() throws Exception {
-        TableComparator tableCompare = new TableComparator(PROPERTIES);
-        tableCompare.compare(true);
 
+        CompareTableAction compare = new CompareTableAction();
+        compare.init(buildOptions());
+
+    }
+
+    public  CompareTableOptions buildOptions(){
+        CompareTableOptions options = new CompareTableOptions();
+
+        return options;
     }
 }

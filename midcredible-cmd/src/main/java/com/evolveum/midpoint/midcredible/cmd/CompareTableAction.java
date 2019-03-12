@@ -18,6 +18,6 @@ public class CompareTableAction implements Action<CompareTableOptions> {
 
     @Override
     public void execute() throws Exception {
-        new TableComparator(options).compare(false);
+        new TableComparator(options).execute();
     }
 }
