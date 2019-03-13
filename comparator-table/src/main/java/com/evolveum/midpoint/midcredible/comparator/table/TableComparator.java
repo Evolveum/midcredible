@@ -18,6 +18,7 @@ public class TableComparator {
     private DataSource oldResource;
 
     private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
+    private static final StatusLogger statusLogger = new StatusLogger();
 
     private CompareTableOptions options;
 
@@ -164,7 +165,7 @@ public class TableComparator {
                         break;
                 }
                 noOfRows++;
-                System.out.println("Processed number of rows: " + noOfRows);
+                statusLogger.printStatus("Processed number of rows: " ,noOfRows);
             }
 
             while (newRs.next()) {
@@ -172,7 +173,7 @@ public class TableComparator {
                 newRow.setChanged(State.NEW_AFTER_OLD);
                 reportPrinter.printCsvRow(attributeList, newRow);
                 noOfRows++;
-                System.out.println("Processed number of rows: " + noOfRows);
+                statusLogger.printStatus("Processed number of rows: " ,noOfRows);
             }
         } catch (SQLException e) {
             LOG.error("Sql exception while iterating trough result set " + e.getLocalizedMessage());
