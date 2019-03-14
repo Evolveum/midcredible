@@ -7,22 +7,18 @@ import org.slf4j.LoggerFactory;
 
 import javax.script.ScriptException;
 import javax.sql.DataSource;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
 
-public class TableComparator implements DatabaseComparison {
+public class TableComparator {
 
     private DataSource newResource;
     private DataSource oldResource;
-    private String comparatorPath;
-    private String outCsvFilePath;
-
-    private Boolean printEqualRows;
 
     private static final Logger LOG = LoggerFactory.getLogger(TableComparator.class);
+    private static final StatusLogger statusLogger = new StatusLogger();
 
     private CompareTableOptions options;
 
@@ -30,91 +26,22 @@ public class TableComparator implements DatabaseComparison {
         this.options = options;
     }
 
-    //    public TableComparator() {
-//
-//        this(null, null);
-//    }
-//
-//    public TableComparator(String properties) {
-//
-//        this(null, properties);
-//    }
-//
-//
-//    public TableComparator(TableButler newResource, String properties) {
-//
-//        if (newResource != null) {
-//
-//            this.newResource = newResource.getClient().getDataSource();
-//        } else {
-//
-//            if (properties != null && !properties.isEmpty()) {
-//                fetchDataFromProperties(properties);
-//            } else {
-//                fetchDataFromProperties();
-//            }
-//
-//        }
-//
-//    }
+    private void setupDataSources() {
 
-    private void fetchDataFromProperties() {
-        fetchDataFromProperties(null, false);
-    }
-
-    private void fetchDataFromProperties(String propertiesPath) {
-        fetchDataFromProperties(propertiesPath, true);
-    }
-
-    private void fetchDataFromProperties(String propertiesPath, Boolean isFile) {
         JdbcUtil util = new JdbcUtil();
-        if (isFile) {
-            FileInputStream input;
-            Properties properties = null;
-            try {
-                input = new FileInputStream(propertiesPath);
 
-                new Properties();
-                properties.load(input);
-            } catch (IOException e) {
-                LOG.error("Unexpected Io Exception: " + e);
-            }
-            oldResource = util.setupDataSource(properties.getProperty(JDBC_URL_OLD_RESOURCE), properties.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
-                    , properties.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), properties.getProperty(JDBC_DRIVER));
+        oldResource = util.setupDataSource(options.getOldJdbcUrl(), options.getOldUsername()
+                , options.getOldPassword(), options.getJdbcDriver());
 
-            newResource = util.setupDataSource(properties.getProperty(JDBC_URL_NEW_RESOURCE), properties.getProperty(DATABASE_USERNAME_NEW_RESOURCE)
-                    , properties.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), properties.getProperty(JDBC_DRIVER));
-
-            comparatorPath = properties.getProperty(ComparisonParent.COMPARATOR_LOCATION);
-            outCsvFilePath = properties.getProperty(ComparisonParent.OUT_CSV_FILE_LOCATION);
-
-            printEqualRows = Boolean.getBoolean(System.getProperty(ComparisonParent.COMPARATOR_PRINT_EQUAL_ENTITIES));
-        } else {
-            String propertyPath = System.getProperty(ComparisonParent.PROPERTIES_FILE_LOCATION);
-
-            if (propertyPath != null && !propertyPath.isEmpty()) {
-                fetchDataFromProperties(propertyPath, true);
-            } else {
-
-                oldResource = util.setupDataSource(System.getProperty(JDBC_URL_OLD_RESOURCE), System.getProperty(DATABASE_USERNAME_OLD_RESOURCE)
-                        , System.getProperty(DATABASE_PASSWORD_OLD_RESOURCE), System.getProperty(JDBC_DRIVER));
-
-                newResource = util.setupDataSource(System.getProperty(JDBC_URL_NEW_RESOURCE), System.getProperty(DATABASE_USERNAME_NEW_RESOURCE)
-                        , System.getProperty(DATABASE_PASSWORD_NEW_RESOURCE), System.getProperty(JDBC_DRIVER));
-
-                comparatorPath = System.getProperty(ComparisonParent.COMPARATOR_LOCATION);
-                outCsvFilePath = System.getProperty(ComparisonParent.OUT_CSV_FILE_LOCATION);
-
-                printEqualRows = Boolean.getBoolean(System.getProperty(ComparisonParent.COMPARATOR_PRINT_EQUAL_ENTITIES));
-            }
-        }
+        newResource = util.setupDataSource(options.getNewJdbcUrl(), options.getNewUsername()
+                , options.getNewPassword(), options.getJdbcDriver());
 
     }
 
-    @Override
-    public void compare(Boolean compareAttributes) throws SQLException, IOException, ScriptException, IllegalAccessException, InstantiationException {
+    public void execute() throws SQLException, IOException, ScriptException, IllegalAccessException, InstantiationException {
         try {
-            executeComparison(setupComparator(), compareAttributes);
+            setupDataSources();
+            executeComparison(setupComparator(), options.getCompareAttributeValues());
         } catch (IOException e) {
             LOG.error("Exception white iterating trough result set: " + e.getLocalizedMessage());
             throw e;
@@ -138,11 +65,9 @@ public class TableComparator implements DatabaseComparison {
 
     protected void executeComparison(Comparator comparator, Boolean compareAttributes) throws SQLException, IOException {
         CsvReportPrinter reportPrinter = new CsvReportPrinter();
-        reportPrinter.setOutPath(outCsvFilePath);
+        reportPrinter.setOutPath(options.getCsvPrinterOptions().getPath().toString());
 
-        if (printEqualRows != null) {
-            reportPrinter.setPrintEqual(printEqualRows);
-        }
+        reportPrinter.setPrintEqual(options.getCsvPrinterOptions().isPrintEqual());
 
         reportPrinter.init();
 
@@ -160,16 +85,15 @@ public class TableComparator implements DatabaseComparison {
 
             LOG.info("Number of columns fetched: " + columns);
 
-            for (int i = 1; i < columns; i++) {
+            for (int i = 1; i <= columns; i++) {
 
                 attributeList.add(md.getColumnName(i));
             }
 
         } catch (SQLException e) {
-            LOG.error("An error has occurred: " + e.getLocalizedMessage());
+            LOG.error("An sql exception has occurred: " + e.getLocalizedMessage());
             throw e;
         }
-
 
         Entity oldRow = null;
         Entity newRow;
@@ -206,7 +130,9 @@ public class TableComparator implements DatabaseComparison {
 
                             iterateNew = true;
                             iterateOld = true;
-                            break;
+
+                            oldRow.setChanged(State.EQUAL);
+                            reportPrinter.printCsvRow(attributeList, oldRow);
                         } else {
 
                             Entity difference = comparator.compareData(oldRow, newRow);
@@ -239,7 +165,7 @@ public class TableComparator implements DatabaseComparison {
                         break;
                 }
                 noOfRows++;
-                System.out.println("Processed number of rows: " + noOfRows);
+                statusLogger.printStatus("Processed number of rows: " ,noOfRows);
             }
 
             while (newRs.next()) {
@@ -247,10 +173,10 @@ public class TableComparator implements DatabaseComparison {
                 newRow.setChanged(State.NEW_AFTER_OLD);
                 reportPrinter.printCsvRow(attributeList, newRow);
                 noOfRows++;
-                System.out.println("Processed number of rows: " + noOfRows);
+                statusLogger.printStatus("Processed number of rows: " ,noOfRows);
             }
         } catch (SQLException e) {
-            LOG.error("Sql exception white iterating trough result set " + e.getLocalizedMessage());
+            LOG.error("Sql exception while iterating trough result set " + e.getLocalizedMessage());
             throw e;
         } catch (IOException e) {
             LOG.error("IO exception white iterating trough result set " + e.getMessage());
@@ -269,7 +195,7 @@ public class TableComparator implements DatabaseComparison {
         ResultSetMetaData md = rs.getMetaData();
         int columns = md.getColumnCount();
 
-        for (int i = 1; i < columns; i++) {
+        for (int i = 1; i <= columns; i++) {
 
             String colName = md.getColumnName(i);
 
@@ -277,7 +203,15 @@ public class TableComparator implements DatabaseComparison {
             Object object = rs.getObject(i);
             attr.setInitialSingleValue(object);
 
-            LOG.trace("Setting up attribute: " + colName + " with value: " + object.toString());
+
+            if (object != null) {
+
+                LOG.trace("Setting up attribute: " + colName + " with value: " + object.toString());
+            } else {
+
+                LOG.trace("Setting up attribute: " + colName + " with value: [NULL]");
+            }
+
             Map map = entity.getAttrs();
             map.put(colName, attr);
             entity.setAttrs(map);
@@ -287,7 +221,7 @@ public class TableComparator implements DatabaseComparison {
     }
 
     private Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException {
-        return GroovyUtils.createTypeInstance(Comparator.class, comparatorPath);
+        return GroovyUtils.createTypeInstance(Comparator.class, options.getCompareScriptPath().getPath());
     }
 
     private ResultSet createResultSet(String query, DataSource ds) throws SQLException {
@@ -302,7 +236,7 @@ public class TableComparator implements DatabaseComparison {
         int columns = md.getColumnCount();
 
         Map<Label, Object> map = new HashMap<>();
-        for (int i = 1; i < columns; i++) {
+        for (int i = 1; i <= columns; i++) {
             map.put(new Label(md.getColumnName(i), i), rs.getObject(i));
         }
 
