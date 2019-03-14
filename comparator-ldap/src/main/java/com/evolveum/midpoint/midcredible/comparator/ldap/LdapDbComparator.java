@@ -6,6 +6,7 @@ import com.evolveum.midpoint.midcredible.comparator.common.GroovyUtils;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.Column;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -63,8 +64,13 @@ public class LdapDbComparator {
              LdapConnection oldCon = setupConnection(LDAP_DATASET.OLD);
              LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
 
-            LOG.info("Compiling comparator groovy script");
-            comparator = GroovyUtils.createTypeInstance(LdapComparator.class, options.getCompareScriptPath().getPath());
+            if (StringUtils.isNotEmpty(options.getBaseDn())) {
+                LOG.info("Using default comparator");
+                comparator = new DefaultLdapComparator(options);
+            } else {
+                LOG.info("Compiling comparator groovy script");
+                comparator = GroovyUtils.createTypeInstance(LdapComparator.class, options.getCompareScriptPath().getPath());
+            }
 
             LOG.info("Setting up csv printer");
             CsvPrinterOptions csvOpts = options.getCsvPrinterOptions();

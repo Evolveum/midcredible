@@ -10,7 +10,7 @@ import java.io.File;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Parameters(resourceBundle = "messages", commandDescriptionKey = "compare-ldap")
+@Parameters(resourceBundle = "compare-ldap", commandDescriptionKey = "compare-ldap")
 public class CompareLdapOptions {
 
     public static final String P_OLD_HOST = "-oh";
@@ -60,6 +60,21 @@ public class CompareLdapOptions {
 
     public static final String P_COMPRESS_DATA = "-g";
     public static final String P_COMPRESS_DATA_LONG = "--compress-data";
+
+    public static final String P_ATTRIBUTES = "-a";
+    public static final String P_ATTRIBUTES_LONG = "--attributes";
+
+    public static final String P_ATTRIBUTES_TO_IGNORE = "-ai";
+    public static final String P_ATTRIBUTES_TO_IGNORE_LONG = "--attributes-to-ignore";
+
+    public static final String P_BASE_DN = "-b";
+    public static final String P_BASE_DN_LONG = "--base-dn";
+
+    public static final String P_FILTER = "-f";
+    public static final String P_FILTER_LONG = "--filter";
+
+    public static final String P_SCOPE = "-i";
+    public static final String P_SCOPE_LONG = "--scope";
 
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
@@ -113,6 +128,21 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_COMPRESS_DATA, P_COMPRESS_DATA_LONG}, descriptionKey = "compare-ldap.compressData")
     private boolean compressData;
+
+    @Parameter(names = {P_ATTRIBUTES, P_ATTRIBUTES_LONG}, descriptionKey = "compare-ldap.attributes")
+    private String attributes = "*";
+
+    @Parameter(names = {P_ATTRIBUTES_TO_IGNORE, P_ATTRIBUTES_TO_IGNORE_LONG}, descriptionKey = "compare-ldap.attributesToIgnore")
+    private String attributesToIgnore = "";
+
+    @Parameter(names = {P_BASE_DN, P_BASE_DN_LONG}, descriptionKey = "compare-ldap.baseDn")
+    private String baseDn;
+
+    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "compare-ldap.filter")
+    private String filter = "(objectclass=*)";
+
+    @Parameter(names = {P_SCOPE, P_SCOPE_LONG}, descriptionKey = "compare-ldap.scope", validateValueWith = ScopeValueValidator.class)
+    private String scope = "sub";
 
     public String getOldHost() {
         return oldHost;
@@ -244,6 +274,50 @@ public class CompareLdapOptions {
 
     public void setCompressData(boolean compressData) {
         this.compressData = compressData;
+    }
+
+    public void setCsvPrinterOptions(CsvPrinterOptions csvPrinterOptions) {
+        this.csvPrinterOptions = csvPrinterOptions;
+    }
+
+    public String getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(String attributes) {
+        this.attributes = attributes;
+    }
+
+    public String getAttributesToIgnore() {
+        return attributesToIgnore;
+    }
+
+    public void setAttributesToIgnore(String attributesToIgnore) {
+        this.attributesToIgnore = attributesToIgnore;
+    }
+
+    public String getBaseDn() {
+        return baseDn;
+    }
+
+    public void setBaseDn(String baseDn) {
+        this.baseDn = baseDn;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
     public String getOldPasswordOrAskPassword() {
