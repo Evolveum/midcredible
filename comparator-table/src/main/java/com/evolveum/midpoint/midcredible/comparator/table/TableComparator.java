@@ -27,7 +27,6 @@ public class TableComparator {
     }
 
     private void setupDataSources() {
-
         JdbcUtil util = new JdbcUtil();
 
         oldResource = util.setupDataSource(options.getOldJdbcUrl(), options.getOldUsername()
@@ -35,7 +34,6 @@ public class TableComparator {
 
         newResource = util.setupDataSource(options.getNewJdbcUrl(), options.getNewUsername()
                 , options.getNewPassword(), options.getJdbcDriver());
-
     }
 
     public void execute() throws SQLException, IOException, ScriptException, IllegalAccessException, InstantiationException {
@@ -56,10 +54,20 @@ public class TableComparator {
             throw e;
         } finally {
 
-            LOG.info("Closing connection to both data sources.");
-
+            if (null!=newResource){
+                LOG.info("Closing connection to new data sources.");
             newResource.getConnection().close();
-            oldResource.getConnection().close();
+            }else {
+                  LOG.error("Program ended without connection initialization for 'new' resource.");
+            }
+
+            if (null!=oldResource){
+                LOG.info("Closing connection to old data sources.");
+                oldResource.getConnection().close();
+            }else {
+                LOG.error("Program ended without connection initialization for 'old' resource.");
+            }
+
         }
     }
 

@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.midcredible.comparator.table;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import javax.sql.DataSource;
@@ -11,11 +13,13 @@ public class JdbcUtil {
     public JdbcUtil() {
 
     }
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
 
     public DataSource setupDataSource(String url, String username, String password, String driver) {
         checkParameters(url, username, password, driver);
         SingleConnectionDataSource ds = new SingleConnectionDataSource(url, username, password, true);
         ds.setDriverClassName(driver);
+
         return ds;
     }
 
@@ -51,6 +55,7 @@ public class JdbcUtil {
             missingProperty.append("driver").append(" ");
         }
         if (parameterMissing) {
+            LOG.error("One or more parameters are missing for connecting to the data source");
             throw new InvalidParameterException(MessageFormat.format("Parameter no supplied as property, {0}", missingProperty.toString()));
         }
     }
