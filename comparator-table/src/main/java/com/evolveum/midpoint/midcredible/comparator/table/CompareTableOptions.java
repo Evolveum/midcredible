@@ -79,7 +79,7 @@ public class CompareTableOptions {
     private File compareScriptPath;
 
     @Parameter(names = {P_COMPARE_ATTRIBUTE_VALUES, P_COMPARE_ATTRIBUTE_VALUES_LONG}, descriptionKey = "compare-table.attribute.values")
-    private Boolean compareAttributeValues =false;
+    private boolean compareAttributeValues =true;
 
     @Parameter(names = {P_JDBC_DRIVER, P_JDBC_DRIVER_LONG}, descriptionKey = "compare-table.jdbc.driver")
     private String jdbcDriver;

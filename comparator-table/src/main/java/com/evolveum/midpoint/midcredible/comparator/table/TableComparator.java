@@ -104,7 +104,7 @@ public class TableComparator {
         }
 
         Entity oldRow = null;
-        Entity newRow;
+        Entity newRow = null;
         boolean iterateNew = true;
         boolean iterateOld = true;
         Integer noOfRows = 0;
@@ -123,13 +123,14 @@ public class TableComparator {
 
                 if (iterateNew) {
                     if (!newRs.next()) {
-                        oldRow.setChanged(State.OLD_AFTER_NEW);
+                        oldRow.setChanged(State.OLD_BEFORE_NEW);
                         reportPrinter.printCsvRow(attributeList, oldRow);
                         iterateOld = true;
+                        continue;
+                    }else{
+                        newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
                     }
                 }
-
-                newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
 
                 State state = comparator.compareEntity(oldRow.getId(), newRow.getId());
                 switch (state) {
@@ -138,7 +139,6 @@ public class TableComparator {
 
                             iterateNew = true;
                             iterateOld = true;
-
                             oldRow.setChanged(State.EQUAL);
                             reportPrinter.printCsvRow(attributeList, oldRow);
                         } else {
@@ -178,7 +178,7 @@ public class TableComparator {
 
             while (newRs.next()) {
                 newRow = createIdentityFromRow(newRs, comparator.buildIdentifier(createMapFromRow(newRs)));
-                newRow.setChanged(State.NEW_AFTER_OLD);
+                newRow.setChanged(State.OLD_AFTER_NEW);
                 reportPrinter.printCsvRow(attributeList, newRow);
                 noOfRows++;
                 statusLogger.printStatus("Processed number of rows: " ,noOfRows);
