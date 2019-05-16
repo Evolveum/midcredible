@@ -67,6 +67,9 @@ public class CompareLdapOptions {
     public static final String P_ATTRIBUTES_TO_IGNORE = "-ai";
     public static final String P_ATTRIBUTES_TO_IGNORE_LONG = "--attributes-to-ignore";
 
+    public static final String P_ATTRIBUTES_COMPARE_IGNORE_CASE = "-ac";
+    public static final String P_ATTRIBUTES_COMPARE_IGNORE_CASE_LONG = "--attributes-compare-ignore-case";
+
     public static final String P_BASE_DN = "-b";
     public static final String P_BASE_DN_LONG = "--base-dn";
 
@@ -134,6 +137,10 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_ATTRIBUTES_TO_IGNORE, P_ATTRIBUTES_TO_IGNORE_LONG}, descriptionKey = "compare-ldap.attributesToIgnore")
     private String attributesToIgnore = "";
+
+    @Parameter(names = {P_ATTRIBUTES_COMPARE_IGNORE_CASE, P_ATTRIBUTES_COMPARE_IGNORE_CASE_LONG}, descriptionKey = "compare-ldap.attributesCompareIgnoreCase")
+    private String attributesCompareIgnoreCase = "";
+
 
     @Parameter(names = {P_BASE_DN, P_BASE_DN_LONG}, descriptionKey = "compare-ldap.baseDn")
     private String baseDn;
@@ -292,7 +299,15 @@ public class CompareLdapOptions {
         return attributesToIgnore;
     }
 
+    public String getAttributesCompareIgnoreCase() {
+        return attributesCompareIgnoreCase;
+    }
+
     public void setAttributesToIgnore(String attributesToIgnore) {
+        this.attributesToIgnore = attributesToIgnore;
+    }
+
+    public void setAttributesIgnoreCase(String attributesIgnoreCase) {
         this.attributesToIgnore = attributesToIgnore;
     }
 

@@ -15,36 +15,15 @@ import java.util.Set;
  */
 public class DefaultLdapComparator extends LdapComparator {
 
-    private CompareLdapOptions options;
-
     public DefaultLdapComparator(CompareLdapOptions options) {
-        this.options = options;
-    }
-
-    @Override
-    public Set<String> getAttributesToIgnore() {
-        if (StringUtils.isEmpty(options.getAttributesToIgnore())) {
-            return super.getAttributesToIgnore();
-        }
-
-        String ignored = options.getAttributesToIgnore();
-        String[] attributes = ignored.split(",");
-
-        Set<String> result = new HashSet<>();
-        for (String attribute : attributes) {
-            String a = attribute.trim();
-            if (StringUtils.isEmpty(a)) {
-                continue;
-            }
-
-            result.add(a);
-        }
-
-        return result;
+        super(options);
     }
 
     @Override
     public SearchRequest buildSearchRequest() throws LdapException {
+
+        CompareLdapOptions options = super.getOptions();
+
         SearchScope scope = SearchScope.OBJECT.getScope(options.getScope());
 
         SearchRequest req = new SearchRequestImpl();
