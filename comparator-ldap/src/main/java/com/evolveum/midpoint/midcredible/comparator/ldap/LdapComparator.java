@@ -168,10 +168,10 @@ public abstract class LdapComparator {
 
                             if (!lcValueOld.equals(nLc)) {
 
-                                equalSet.add(no);
                             } else {
-
+                                
                                 equal.set(true);
+                                equalSet.add(no);
                                 changedVals.add(new ColumnValue(no, ValueState.EQUAL));
                             }
                         }
@@ -183,7 +183,7 @@ public abstract class LdapComparator {
                     }
                 });
 
-                Collection col = CollectionUtils.subtract(equalSet, newValues);
+                Collection col = CollectionUtils.subtract(newValues, equalSet);
                 col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.ADDED)));
             } else {
 
