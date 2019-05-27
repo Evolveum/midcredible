@@ -299,16 +299,16 @@ public class CompareLdapOptions {
         return attributesToIgnore;
     }
 
-    public String getAttributesCompareIgnoreCase() {
-        return attributesCompareIgnoreCase;
-    }
-
     public void setAttributesToIgnore(String attributesToIgnore) {
         this.attributesToIgnore = attributesToIgnore;
     }
 
-    public void setAttributesIgnoreCase(String attributesIgnoreCase) {
-        this.attributesToIgnore = attributesToIgnore;
+    public String getAttributesCompareIgnoreCase() {
+        return attributesCompareIgnoreCase;
+    }
+
+    public void setAttributesCompareIgnoreCase(String attributesCompareIgnoreCase) {
+        this.attributesCompareIgnoreCase = attributesCompareIgnoreCase;
     }
 
     public String getBaseDn() {

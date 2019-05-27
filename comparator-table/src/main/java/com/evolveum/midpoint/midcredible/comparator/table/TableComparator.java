@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import javax.script.ScriptException;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.*;
 
@@ -36,7 +37,7 @@ public class TableComparator {
                 , options.getNewPassword(), options.getJdbcDriver());
     }
 
-    public void execute() throws SQLException, IOException, ScriptException, IllegalAccessException, InstantiationException {
+    public void execute() throws Exception {
         try {
             setupDataSources();
             executeComparison(setupComparator(), options.getCompareAttributeValues());
@@ -228,7 +229,8 @@ public class TableComparator {
         return entity;
     }
 
-    private Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException {
+    private Comparator setupComparator() throws IOException, ScriptException, IllegalAccessException, InstantiationException,
+            NoSuchMethodException, InvocationTargetException {
         return GroovyUtils.createTypeInstance(Comparator.class, options.getCompareScriptPath().getPath());
     }
 
