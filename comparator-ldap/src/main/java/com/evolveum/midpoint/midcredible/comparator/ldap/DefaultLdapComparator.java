@@ -21,8 +21,7 @@ public class DefaultLdapComparator extends LdapComparator {
 
     @Override
     public SearchRequest buildSearchRequest() throws LdapException {
-
-        CompareLdapOptions options = super.getOptions();
+        CompareLdapOptions options = getOptions();
 
         SearchScope scope = SearchScope.OBJECT.getScope(options.getScope());
 

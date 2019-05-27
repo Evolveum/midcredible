@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -64,44 +65,21 @@ public abstract class LdapComparator {
     }
 
     public Set<String> getAttributesToIgnore() {
-        String attrs = options.getAttributesToIgnore();
-
-        if (StringUtils.isEmpty(attrs)) {
-            return getAttributesToIgnore(null);
-
-        }
-
-        String[] attributes = attrs.split(",");
-        return getAttributesCompareIgnoreCase(attributes);
+        return getAttributes(options.getAttributesToIgnore());
     }
 
     public Set<String> getAttributesCompareIgnoreCase() {
+        return getAttributes(options.getAttributesCompareIgnoreCase());
+    }
 
-        String attrs = options.getAttributesCompareIgnoreCase();
-
+    private Set<String> getAttributes(String attrs) {
         if (StringUtils.isEmpty(attrs)) {
-            return getAttributesCompareIgnoreCase(null);
-
+            return new HashSet<>();
         }
-
-        String[] attributes = attrs.split(",");
-        return getAttributesCompareIgnoreCase(attributes);
-    }
-
-    private Set<String> getAttributesToIgnore(String[] attributes) {
-
-        return getAttributes(attributes);
-    }
-
-    private Set<String> getAttributesCompareIgnoreCase(String[] attributes) {
-
-        return getAttributes(attributes);
-    }
-
-    private Set<String> getAttributes(String[] attributes) {
 
         Set<String> result = new HashSet<>();
 
+        String[] attributes = attrs.split(",");
         if (attributes != null && attributes.length != 0) {
             for (String attribute : attributes) {
 
@@ -127,15 +105,20 @@ public abstract class LdapComparator {
         for (Map.Entry<Column, Set<Object>> entry : oldEntry.entrySet()) {
             Column column = entry.getKey();
             String columnName = column.getName();
+
             if (attributesToIgnore.contains(columnName)) {
                 continue;
             }
 
-            Set<Object> oldValues = entry.getValue();
-
             comparedAttributes.add(columnName);
 
+            Set<Object> oldValues = entry.getValue();
             Set<Object> newValues = newEntry.get(column);
+
+            if (attributesCompareIgnoreCase.contains(columnName)) {
+                oldValues = oldValues.stream().map(v -> v.toString().toLowerCase()).collect(Collectors.toSet());
+                newValues = newValues.stream().map(v -> v.toString().toLowerCase()).collect(Collectors.toSet());
+            }
 
             if (newValues == null) {
                 // all old values for this attribute were removed
@@ -148,55 +131,16 @@ public abstract class LdapComparator {
 
             List<ColumnValue> changedVals = new ArrayList<>();
 
-            if (attributesCompareIgnoreCase.contains(columnName)) {
+            Collection col = CollectionUtils.intersection(oldValues, newValues);
+            col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.EQUAL)));
 
-                Set<Object> equalSet = new HashSet<>();
-                oldValues.forEach(o -> {
+            col = CollectionUtils.subtract(oldValues, newValues);
+            col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.REMOVED)));
 
-                    String oldLc = (o == null) ? "null" : o.toString();
-                    oldLc = StringUtils.lowerCase(oldLc);
+            col = CollectionUtils.subtract(newValues, oldValues);
+            col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.ADDED)));
 
-                    AtomicReference<Boolean> equal = new AtomicReference<>(false);
-                    // Has to be effectively final
-                    String lcValueOld = oldLc;
-                    newValues.forEach(no -> {
 
-                        String nLc = (no == null) ? "null" : no.toString();
-                        nLc = StringUtils.lowerCase(nLc);
-
-                        if (lcValueOld != null || nLc != null) {
-
-                            if (!lcValueOld.equals(nLc)) {
-
-                            } else {
-                                
-                                equal.set(true);
-                                equalSet.add(no);
-                                changedVals.add(new ColumnValue(no, ValueState.EQUAL));
-                            }
-                        }
-
-                    });
-
-                    if (!equal.get()) {
-                        changedVals.add(new ColumnValue(o, ValueState.REMOVED));
-                    }
-                });
-
-                Collection col = CollectionUtils.subtract(newValues, equalSet);
-                col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.ADDED)));
-            } else {
-
-                Collection col = CollectionUtils.intersection(oldValues, newValues);
-                col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.EQUAL)));
-
-                col = CollectionUtils.subtract(oldValues, newValues);
-                col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.REMOVED)));
-
-                col = CollectionUtils.subtract(newValues, oldValues);
-                col.forEach(o -> changedVals.add(new ColumnValue(o, ValueState.ADDED)));
-
-            }
             changes.put(column, changedVals);
         }
 

@@ -9,6 +9,8 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -17,8 +19,8 @@ import java.util.Arrays;
  */
 public class GroovyUtils {
 
-    public static <T> T createTypeInstance(Class<T> clazz, String filePath)
-            throws IOException, ScriptException, IllegalAccessException, InstantiationException {
+    public static <T> T createTypeInstance(Class<T> clazz, String filePath, Object... constructorArguments)
+            throws IOException, ScriptException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         File file = new File(filePath);
         String script = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
@@ -44,6 +46,16 @@ public class GroovyUtils {
                     + ", available classes: " + Arrays.toString(gcl.getLoadedClasses()));
         }
 
-        return type.newInstance();
+        if (constructorArguments.length == 0) {
+            return type.newInstance();
+        }
+
+        Class[] types = new Class[constructorArguments.length];
+        for (int i = 0; i < constructorArguments.length; i++) {
+            types[i] = constructorArguments[i] != null ? constructorArguments[i].getClass() : null;
+        }
+
+        Constructor<T> m = type.getConstructor(types);
+        return m.newInstance(constructorArguments);
     }
 }

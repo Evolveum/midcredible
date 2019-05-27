@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.midcredible.framework.comparator
 
+import com.evolveum.midpoint.midcredible.comparator.ldap.CompareLdapOptions
 import com.evolveum.midpoint.midcredible.comparator.ldap.LdapComparator
 import org.apache.directory.api.ldap.model.exception.LdapException
 import org.apache.directory.api.ldap.model.message.SearchRequest
@@ -11,6 +12,10 @@ import org.apache.directory.api.ldap.model.name.Dn
  * Created by Viliam Repan (lazyman).
  */
 class SimpleLdapComparator extends LdapComparator {
+
+    SimpleLdapComparator(CompareLdapOptions options) {
+        super(options)
+    }
 
     @Override
     Set<String> getAttributesToIgnore() {

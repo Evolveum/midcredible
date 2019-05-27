@@ -69,7 +69,7 @@ public class LdapDbComparator {
                 comparator = new DefaultLdapComparator(options);
             } else {
                 LOG.info("Compiling comparator groovy script");
-                comparator = GroovyUtils.createTypeInstance(LdapComparator.class, options.getCompareScriptPath().getPath());
+                comparator = GroovyUtils.createTypeInstance(LdapComparator.class, options.getCompareScriptPath().getPath(), options);
             }
 
             LOG.info("Setting up csv printer");
