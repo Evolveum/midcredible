@@ -30,8 +30,14 @@ public class LdapComparatorTest {
         opts.setNewUsername("cn=admin,dc=example,dc=com");
         opts.setNewPassword("admin");
 
-        opts.setCompareScriptPath(new File("./src/test/resources/SimpleLdapComparator.groovy"));
-        opts.setWorkers(2);
+//        opts.setCompareScriptPath(new File("./src/test/resources/SimpleLdapComparator.groovy"));
+//        opts.setWorkers(2);
+
+        opts.setAttributes("*,objectClass");
+        opts.setAttributesCompareIgnoreCase("dn,objectClass");
+        opts.setAttributesToIgnore("uid");
+
+        opts.setBaseDn("ou=people,dc=example,dc=com");
 
         new LdapDbComparator(opts).execute();
     }
