@@ -79,6 +79,9 @@ public class CompareLdapOptions {
     public static final String P_SCOPE = "-i";
     public static final String P_SCOPE_LONG = "--scope";
 
+    public static final String P_COMPARE_SIZE = "-cs";
+    public static final String P_COMPARE_SIZE_LONG = "--max-compare-size";
+
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
@@ -141,7 +144,6 @@ public class CompareLdapOptions {
     @Parameter(names = {P_ATTRIBUTES_COMPARE_IGNORE_CASE, P_ATTRIBUTES_COMPARE_IGNORE_CASE_LONG}, descriptionKey = "compare-ldap.attributesCompareIgnoreCase")
     private String attributesCompareIgnoreCase = "";
 
-
     @Parameter(names = {P_BASE_DN, P_BASE_DN_LONG}, descriptionKey = "compare-ldap.baseDn")
     private String baseDn;
 
@@ -150,6 +152,9 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_SCOPE, P_SCOPE_LONG}, descriptionKey = "compare-ldap.scope", validateValueWith = ScopeValueValidator.class)
     private String scope = "sub";
+
+    @Parameter(names = {P_COMPARE_SIZE, P_COMPARE_SIZE_LONG}, descriptionKey = "compare-ldap.maxCompareSize")
+    private int maxCompareSize = 120;
 
     public String getOldHost() {
         return oldHost;
@@ -333,6 +338,14 @@ public class CompareLdapOptions {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public int getMaxCompareSize() {
+        return maxCompareSize;
+    }
+
+    public void setMaxCompareSize(int maxCompareSize) {
+        this.maxCompareSize = maxCompareSize;
     }
 
     public String getOldPasswordOrAskPassword() {

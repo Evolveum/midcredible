@@ -8,6 +8,7 @@ import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
+import org.apache.directory.api.ldap.model.ldif.LdifUtils;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
 import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
@@ -94,7 +95,7 @@ public class LdapImportWorker implements Runnable {
                 int worker = Math.abs(dn.hashCode()) % options.getWorkers();
 
                 LdifEntry e = new LdifEntry(entry);
-                String ldif = e.toString();
+                String ldif = LdifUtils.convertToLdif(e, options.getMaxCompareSize());
 
                 byte[] ldifBinary = ldif.getBytes(StandardCharsets.UTF_8.name());
 
