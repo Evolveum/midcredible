@@ -158,8 +158,11 @@ public class LdapComparatorWorker implements Runnable {
     private ResultSet createResultSet(String table, int workerId) throws SQLException {
         Connection con = dataSource.getConnection();
 
-        PreparedStatement pstmt = con.prepareStatement("select entry from " + table + " where worker = ? order by dn");
-        pstmt.setInt(1, workerId);
+        String where = options.getWorkers() > 1 ? " where worker = ? " : "";
+        PreparedStatement pstmt = con.prepareStatement("select entry from " + table + where + " order by dn");
+        if (options.getWorkers() > 1) {
+            pstmt.setInt(1, workerId);
+        }
 
         return pstmt.executeQuery();
     }

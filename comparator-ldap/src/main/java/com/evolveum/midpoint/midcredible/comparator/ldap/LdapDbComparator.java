@@ -59,11 +59,21 @@ public class LdapDbComparator {
 
         LOG.info("Initializing LDAP connections");
 
-        try (HikariDataSource ds = createDataSource(workerCount + 4);
-             CsvReportPrinter printer = new CsvReportPrinter();
-             LdapConnection oldCon = setupConnection(LDAP_DATASET.OLD);
-             LdapConnection newCon = setupConnection(LDAP_DATASET.NEW)) {
+        HikariDataSource ds;
+        LdapConnection oldCon = null;
+        LdapConnection newCon = null;
+        try {
+            ds = createDataSource(workerCount + 4);
 
+            if (options.getCompareOnly() == null) {
+                oldCon = setupConnection(LDAP_DATASET.OLD);
+                newCon = setupConnection(LDAP_DATASET.NEW);
+            }
+        } catch (Exception ex) {
+            throw new LdapComparatorException("Couldn't setup datasource or ldap connections, reason: " + ex.getMessage(), ex);
+        }
+
+        try (CsvReportPrinter printer = new CsvReportPrinter()) {
             if (StringUtils.isNotEmpty(options.getBaseDn())) {
                 LOG.info("Using default comparator");
                 comparator = new DefaultLdapComparator(options);
@@ -80,24 +90,40 @@ public class LdapDbComparator {
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
 
-            LOG.info("Setting up database");
-            setupH2(jdbc);
-
             Set<String> columns = ConcurrentHashMap.newKeySet();
-            columns.add(DN_ATTRIBUTE);
 
             // todo how to handle cancelation?
             // fill in DB table
-            LdapImportWorker importOldWorker = new LdapImportWorker(options, jdbc, OLD_TABLE_NAME, oldCon, comparator, columns);
-            LdapImportWorker importNewWorker = new LdapImportWorker(options, jdbc, NEW_TABLE_NAME, newCon, comparator, columns);
+            if (options.getCompareOnly() == null) {
+                LOG.info("Setting up database");
+                setupH2(jdbc);
 
-            LOG.info("Starting import from LDAP");
-            Future importOldFuture = executor.submit(importOldWorker);
-            Future importNewFuture = executor.submit(importNewWorker);
+                columns.add(DN_ATTRIBUTE);
 
-            // wait for import workers to finish
-            importOldFuture.get();
-            importNewFuture.get();
+                LdapImportWorker importOldWorker = new LdapImportWorker(options, jdbc, OLD_TABLE_NAME, oldCon, comparator, columns);
+                LdapImportWorker importNewWorker = new LdapImportWorker(options, jdbc, NEW_TABLE_NAME, newCon, comparator, columns);
+
+                LOG.info("Starting import from LDAP");
+                Future importOldFuture = executor.submit(importOldWorker);
+                Future importNewFuture = executor.submit(importNewWorker);
+
+                // wait for import workers to finish
+                importOldFuture.get();
+                importNewFuture.get();
+            } else {
+                LOG.info("Skipped importing from LDAP, only compare DB content");
+                String[] array = options.getCompareOnly().split(",");
+                for (String a : array) {
+                    if (a == null) {
+                        continue;
+                    }
+
+                    a = a.trim();
+                    if (!a.isEmpty()) {
+                        columns.add(a);
+                    }
+                }
+            }
 
             LOG.info("Found {} attributes in total {}", columns.size(), columns);
             Map<String, Column> columnMap = buildColumnMap(columns);
@@ -151,6 +177,18 @@ public class LdapDbComparator {
         return new HikariDataSource(config);
     }
 
+    private String buildIndex(String tableName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("create index idx_");
+        sb.append(tableName);
+        sb.append("_dn");
+        sb.append(" on ");
+        sb.append(tableName);
+        sb.append("(dn)");
+
+        return sb.toString();
+    }
+
     private String buildCreateTable(String tableName) {
         StringBuilder sb = new StringBuilder();
         sb.append("create table ");
@@ -170,6 +208,10 @@ public class LdapDbComparator {
     }
 
     private void deleteDbFile() {
+        if (options.getCompareOnly() != null) {
+            return;
+        }
+
         File data = new File(getDBPath() + ".mv.db");
         if (data.exists()) {
             data.delete();

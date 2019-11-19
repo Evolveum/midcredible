@@ -116,8 +116,12 @@ public abstract class LdapComparator {
             Set<Object> newValues = newEntry.get(column);
 
             if (attributesCompareIgnoreCase.contains(columnName)) {
-                oldValues = oldValues.stream().map(v -> v.toString().toLowerCase()).collect(Collectors.toSet());
-                newValues = newValues.stream().map(v -> v.toString().toLowerCase()).collect(Collectors.toSet());
+                if (oldValues != null) {
+                    oldValues = oldValues.stream().map(v -> v.toString().toLowerCase()).collect(Collectors.toSet());
+                }
+                if (newValues != null) {
+                    newValues = newValues.stream().map(v -> v.toString().toLowerCase()).collect(Collectors.toSet());
+                }
             }
 
             if (newValues == null) {

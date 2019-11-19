@@ -82,6 +82,9 @@ public class CompareLdapOptions {
     public static final String P_COMPARE_SIZE = "-cs";
     public static final String P_COMPARE_SIZE_LONG = "--max-compare-size";
 
+    public static final String P_COMPARE_ONLY = "-co";
+    public static final String P_COMPARE_ONLY_LONG = "--compare-only";
+
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
@@ -155,6 +158,9 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_COMPARE_SIZE, P_COMPARE_SIZE_LONG}, descriptionKey = "compare-ldap.maxCompareSize")
     private int maxCompareSize = 120;
+
+    @Parameter(names = {P_COMPARE_ONLY, P_COMPARE_ONLY_LONG}, descriptionKey = "compare-ldap.compareOnly")
+    private String compareOnly;
 
     public String getOldHost() {
         return oldHost;
@@ -364,5 +370,13 @@ public class CompareLdapOptions {
         }
 
         return password;
+    }
+
+    public String getCompareOnly() {
+        return compareOnly;
+    }
+
+    public void setCompareOnly(String compareOnly) {
+        this.compareOnly = compareOnly;
     }
 }
