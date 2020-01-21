@@ -2,6 +2,7 @@ package com.evolveum.midpoint.midcredible.comparator.ldap;
 
 import com.evolveum.midpoint.midcredible.comparator.common.CsvPrinterOptions;
 import com.evolveum.midpoint.midcredible.comparator.common.CsvReportPrinter;
+import com.evolveum.midpoint.midcredible.comparator.common.CsvReportPrinter2;
 import com.evolveum.midpoint.midcredible.comparator.common.GroovyUtils;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.Column;
 import com.zaxxer.hikari.HikariConfig;
@@ -73,7 +74,7 @@ public class LdapDbComparator {
             throw new LdapComparatorException("Couldn't setup datasource or ldap connections, reason: " + ex.getMessage(), ex);
         }
 
-        try (CsvReportPrinter printer = new CsvReportPrinter()) {
+        try (CsvReportPrinter2 printer = new CsvReportPrinter2(options.getCsvPrinterOptions())) {
             if (StringUtils.isNotEmpty(options.getBaseDn())) {
                 LOG.info("Using default comparator");
                 comparator = new DefaultLdapComparator(options);
@@ -83,9 +84,6 @@ public class LdapDbComparator {
             }
 
             LOG.info("Setting up csv printer");
-            CsvPrinterOptions csvOpts = options.getCsvPrinterOptions();
-            printer.setOutPath(csvOpts.getPath().getPath());
-            printer.setPrintEqual(csvOpts.isPrintEqual());
             printer.init();
 
             JdbcTemplate jdbc = new JdbcTemplate(ds);
@@ -127,6 +125,8 @@ public class LdapDbComparator {
 
             LOG.info("Found {} attributes in total {}", columns.size(), columns);
             Map<String, Column> columnMap = buildColumnMap(columns);
+
+            printer.printCsvHeader(new ArrayList<>(columns));
 
             LOG.info("Starting compare process");
             List<LdapComparatorWorker> compareWorkers = new ArrayList<>();

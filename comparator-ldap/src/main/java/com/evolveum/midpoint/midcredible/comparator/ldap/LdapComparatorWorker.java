@@ -1,9 +1,12 @@
 package com.evolveum.midpoint.midcredible.comparator.ldap;
 
-import com.evolveum.midpoint.midcredible.comparator.common.*;
+import com.evolveum.midpoint.midcredible.comparator.common.CsvReportPrinter2;
+import com.evolveum.midpoint.midcredible.comparator.common.Row;
+import com.evolveum.midpoint.midcredible.comparator.common.StatusLogger;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.Column;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.ColumnValue;
 import com.evolveum.midpoint.midcredible.comparator.ldap.util.RowState;
+import com.evolveum.midpoint.midcredible.comparator.ldap.util.ValueState;
 import org.apache.commons.io.IOUtils;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -22,7 +25,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Comparator;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -42,7 +44,7 @@ public class LdapComparatorWorker implements Runnable {
 
     private DataSource dataSource;
 
-    private CsvReportPrinter printer;
+    private CsvReportPrinter2 printer;
 
     private LdapComparator comparator;
 
@@ -52,7 +54,7 @@ public class LdapComparatorWorker implements Runnable {
 
     private boolean canceled;
 
-    public LdapComparatorWorker(CompareLdapOptions options, int workerId, DataSource dataSource, CsvReportPrinter printer,
+    public LdapComparatorWorker(CompareLdapOptions options, int workerId, DataSource dataSource, CsvReportPrinter2 printer,
                                 LdapComparator comparator, Map<String, Column> columnMap) {
         this.options = options;
         this.workerId = workerId;
@@ -105,7 +107,7 @@ public class LdapComparatorWorker implements Runnable {
 
                 if (newRow == null) {
                     // there's nothing left in new table, old table contains more rows than it should, mark old rows as "-"
-                    printCsvRow(printer, RowState.OLD_AFTER_NEW, oldRow);
+                    printCsvRow(oldRow, null);
                     moveOld = true;
 
                     continue;
@@ -115,18 +117,22 @@ public class LdapComparatorWorker implements Runnable {
                 switch (state) {
                     case EQUAL:
                         Map<Column, List<ColumnValue>> changes = comparator.compareData(oldRow, newRow);
-                        printCsvRow(printer, changes);
+
+                        if (!isNoChanges(changes)) {
+                            printCsvRow(oldRow, newRow);
+                        }
+
                         moveOld = true;
                         moveNew = true;
                         break;
                     case OLD_BEFORE_NEW:
                         // new table contains row that shouldn't be there, mark new as "+"
-                        printCsvRow(printer, RowState.OLD_BEFORE_NEW, oldRow);
+                        printCsvRow(oldRow, null);
                         moveOld = true;
                         break;
                     case OLD_AFTER_NEW:
                         // new table misses some rows obviously, therefore old row should be marked as "-"
-                        printCsvRow(printer, RowState.OLD_AFTER_NEW, newRow);
+                        printCsvRow(null, newRow);
                         moveNew = true;
                         break;
                 }
@@ -146,7 +152,7 @@ public class LdapComparatorWorker implements Runnable {
                 }
 
                 // these remaining records are not in old result set, mark new rows as "+"
-                printCsvRow(printer, RowState.OLD_BEFORE_NEW, newRow);
+                printCsvRow(null, newRow);
             }
         } catch (Exception ex) {
             throw new LdapComparatorException("Ldap comparator worker failed, reason: " + ex.getMessage(), ex);
@@ -167,87 +173,56 @@ public class LdapComparatorWorker implements Runnable {
         return pstmt.executeQuery();
     }
 
-    private void printCsvRow(CsvReportPrinter printer, Map<Column, List<ColumnValue>> changes) throws IOException {
+    private boolean isNoChanges(Map<Column, List<ColumnValue>> changes) {
         if (changes == null) {
-            throw new LdapComparatorException("Changes map must not be null");
+            return true;
         }
 
-        Map<String, com.evolveum.midpoint.midcredible.comparator.common.Attribute> attributes = new HashMap<>();
-
-        boolean changed = false;
-        for (Map.Entry<Column, List<ColumnValue>> entry : changes.entrySet()) {
-            if (entry.getValue() == null || entry.getValue().isEmpty()) {
+        for (List<ColumnValue> values : changes.values()) {
+            if (values == null) {
                 continue;
             }
 
-            com.evolveum.midpoint.midcredible.comparator.common.Attribute attr =
-                    new com.evolveum.midpoint.midcredible.comparator.common.Attribute(entry.getKey().getName());
-
-            for (ColumnValue value : entry.getValue()) {
-                if (value.getState() == null) {
-                    continue;
-                }
-
-                switch (value.getState()) {
-                    case EQUAL:
-                        attr.addValue(Diff.EQUALS, value.getValue());
-                        break;
-                    case ADDED:
-                        changed = true;
-                        attr.addValue(Diff.ADD, value.getValue());
-                        break;
-                    case REMOVED:
-                        changed = true;
-                        attr.addValue(Diff.REMOVE, value.getValue());
-                        break;
+            for (ColumnValue val : values) {
+                if (!ValueState.EQUAL.equals(val.getState())) {
+                    return false;
                 }
             }
-
-            attributes.put(attr.getName(), attr);
         }
 
-        Entity entity = new Entity(null, attributes);
-        entity.setChanged(getState(RowState.EQUAL, changed));
-
-        printer.printCsvRow(columnList, entity);
+        return true;
     }
 
-    private void printCsvRow(CsvReportPrinter printer, RowState rowState, Map<Column, Set<Object>> entry) throws IOException {
-        Map<String, com.evolveum.midpoint.midcredible.comparator.common.Attribute> attributes = new HashMap<>();
+    private void printCsvRow(Map<Column, Set<Object>> oldRow, Map<Column, Set<Object>> newRow) throws IOException {
+        Row oldR = createRowFromMap(oldRow);
+        Row newR = createRowFromMap(newRow);
 
-        for (Map.Entry<Column, Set<Object>> e : entry.entrySet()) {
-            if (e.getValue() == null || e.getValue().isEmpty()) {
-                continue;
-            }
-
-            String attrName = e.getKey().getName();
-
-            com.evolveum.midpoint.midcredible.comparator.common.Attribute attr =
-                    new com.evolveum.midpoint.midcredible.comparator.common.Attribute(attrName);
-            attr.setValues(new HashMap<>());
-
-            attr.getValues().put(Diff.NONE, e.getValue());
-
-            attributes.put(attr.getName(), attr);
-        }
-
-        Entity entity = new Entity(null, attributes);
-        entity.setChanged(getState(rowState, true));
-
-        printer.printCsvRow(columnList, entity);
+        printer.printCsvRow(oldR, newR);
     }
 
-    private State getState(RowState state, boolean changed) {
-        switch (state) {
-            case EQUAL:
-                return changed ? State.MODIFIED : State.EQUAL;
-            case OLD_AFTER_NEW:
-                return State.OLD_AFTER_NEW;
-            case OLD_BEFORE_NEW:
-                return State.OLD_BEFORE_NEW;
-            default:
-                return null;
+    private Row createRowFromMap(Map<Column, Set<Object>> row) {
+        if (row == null) {
+            return null;
         }
+
+        Map<String, List<Object>> attrs = new HashMap<>();
+        for (Column column : row.keySet()) {
+            Set<Object> values = row.get(column);
+
+            List<Object> list = new ArrayList<>(values);
+            Collections.sort(list, (o1, o2) -> {
+
+                String s1 = o1 != null ? o1.toString() : null;
+                String s2 = o2 != null ? o2.toString() : null;
+
+                return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+            });
+            attrs.put(column.getName(), list);
+        }
+
+        String uid = (String) attrs.get(LdapDbComparator.DN_ATTRIBUTE).get(0);
+
+        return new Row(uid, attrs);
     }
 
     private Map<Column, Set<Object>> createEntryFromRow(ResultSet rs) throws SQLException, IOException {

@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Merge to {@link CsvReportPrinter2}
+ */
+@Deprecated
 public class CsvReportPrinter implements Closeable {
 
     private static final char DEFAULT_MV_SEPARATOR = ';';
