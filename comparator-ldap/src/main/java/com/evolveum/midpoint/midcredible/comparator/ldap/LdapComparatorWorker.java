@@ -10,6 +10,7 @@ import com.evolveum.midpoint.midcredible.comparator.ldap.util.ValueState;
 import org.apache.commons.io.IOUtils;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.ldif.LdapLdifException;
 import org.apache.directory.api.ldap.model.ldif.LdifEntry;
 import org.apache.directory.api.ldap.model.ldif.LdifReader;
@@ -119,7 +120,7 @@ public class LdapComparatorWorker implements Runnable {
                         Map<Column, List<ColumnValue>> changes = comparator.compareData(oldRow, newRow);
 
                         if (!isNoChanges(changes)) {
-                            if (!isSkipPrint("modify")) {
+                            if (!isSkipPrint("modified")) {
                                 printCsvRow(oldRow, newRow);
                             }
                         }
@@ -222,7 +223,17 @@ public class LdapComparatorWorker implements Runnable {
         for (Column column : row.keySet()) {
             Set<Object> values = row.get(column);
 
-            List<Object> list = new ArrayList<>(values);
+            List<Object> list = new ArrayList<>();
+            if (options.isPrintRealValues()) {
+                for (Object value : values) {
+                    Object txt = value instanceof Value ? ((Value) value).getValue() : value;
+                    list.add(txt);
+                }
+            } else {
+                list.addAll(values);
+            }
+
+
             Collections.sort(list, (o1, o2) -> {
 
                 String s1 = o1 != null ? o1.toString() : null;

@@ -88,6 +88,9 @@ public class CompareLdapOptions {
     public static final String P_SKIP_PRINT = "-sp";
     public static final String P_SKIP_PRINT_LONG = "--skip-print";
 
+    public static final String P_PRINT_REAL_VALUES = "-prv";
+    public static final String P_PRINT_REAL_VALUES_LONG = "--print-real-values";
+
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
@@ -167,6 +170,9 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_SKIP_PRINT, P_SKIP_PRINT_LONG}, descriptionKey = "compare-ldap.skipPrint")
     private String skipPrint;
+
+    @Parameter(names = {P_PRINT_REAL_VALUES, P_PRINT_REAL_VALUES_LONG}, descriptionKey = "compare-ldap.printRealValues")
+    private boolean printRealValues;
 
     public String getOldHost() {
         return oldHost;
@@ -392,5 +398,13 @@ public class CompareLdapOptions {
 
     public void setSkipPrint(String skipPrint) {
         this.skipPrint = skipPrint;
+    }
+
+    public boolean isPrintRealValues() {
+        return printRealValues;
+    }
+
+    public void setPrintRealValues(boolean printRealValues) {
+        this.printRealValues = printRealValues;
     }
 }

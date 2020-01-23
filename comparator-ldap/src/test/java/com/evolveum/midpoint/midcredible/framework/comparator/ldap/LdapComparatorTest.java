@@ -33,6 +33,7 @@ public class LdapComparatorTest {
         opts.setFilter("(uid=a*)");
 
         opts.setSkipPrint("old,new");
+        opts.setPrintRealValues(true);
 
 //        opts.setCompareScriptPath(new File("./src/test/resources/SimpleLdapComparator.groovy"));
 //        opts.setWorkers(2);
