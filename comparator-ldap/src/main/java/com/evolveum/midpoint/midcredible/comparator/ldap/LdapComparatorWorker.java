@@ -130,14 +130,14 @@ public class LdapComparatorWorker implements Runnable {
                         break;
                     case OLD_BEFORE_NEW:
                         // new table contains row that shouldn't be there, mark new as "+"
-                        if (!isSkipPrint("new")) {
+                        if (!isSkipPrint("old")) {
                             printCsvRow(oldRow, null);
                         }
                         moveOld = true;
                         break;
                     case OLD_AFTER_NEW:
                         // new table misses some rows obviously, therefore old row should be marked as "-"
-                        if (!isSkipPrint("old")) {
+                        if (!isSkipPrint("new")) {
                             printCsvRow(null, newRow);
                         }
                         moveNew = true;
