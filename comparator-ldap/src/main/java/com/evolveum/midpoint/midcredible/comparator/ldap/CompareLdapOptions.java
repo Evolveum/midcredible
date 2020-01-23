@@ -85,6 +85,9 @@ public class CompareLdapOptions {
     public static final String P_COMPARE_ONLY = "-co";
     public static final String P_COMPARE_ONLY_LONG = "--compare-only";
 
+    public static final String P_SKIP_PRINT = "-sp";
+    public static final String P_SKIP_PRINT_LONG = "--skip-print";
+
     @ParametersDelegate
     private CsvPrinterOptions csvPrinterOptions = new CsvPrinterOptions();
 
@@ -161,6 +164,9 @@ public class CompareLdapOptions {
 
     @Parameter(names = {P_COMPARE_ONLY, P_COMPARE_ONLY_LONG}, descriptionKey = "compare-ldap.compareOnly")
     private String compareOnly;
+
+    @Parameter(names = {P_SKIP_PRINT, P_SKIP_PRINT_LONG}, descriptionKey = "compare-ldap.skipPrint")
+    private String skipPrint;
 
     public String getOldHost() {
         return oldHost;
@@ -378,5 +384,13 @@ public class CompareLdapOptions {
 
     public void setCompareOnly(String compareOnly) {
         this.compareOnly = compareOnly;
+    }
+
+    public String getSkipPrint() {
+        return skipPrint;
+    }
+
+    public void setSkipPrint(String skipPrint) {
+        this.skipPrint = skipPrint;
     }
 }

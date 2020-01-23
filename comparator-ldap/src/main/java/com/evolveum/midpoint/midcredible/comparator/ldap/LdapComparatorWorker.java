@@ -119,7 +119,9 @@ public class LdapComparatorWorker implements Runnable {
                         Map<Column, List<ColumnValue>> changes = comparator.compareData(oldRow, newRow);
 
                         if (!isNoChanges(changes)) {
-                            printCsvRow(oldRow, newRow);
+                            if (!isSkipPrint("modify")) {
+                                printCsvRow(oldRow, newRow);
+                            }
                         }
 
                         moveOld = true;
@@ -127,12 +129,16 @@ public class LdapComparatorWorker implements Runnable {
                         break;
                     case OLD_BEFORE_NEW:
                         // new table contains row that shouldn't be there, mark new as "+"
-                        printCsvRow(oldRow, null);
+                        if (!isSkipPrint("new")) {
+                            printCsvRow(oldRow, null);
+                        }
                         moveOld = true;
                         break;
                     case OLD_AFTER_NEW:
                         // new table misses some rows obviously, therefore old row should be marked as "-"
-                        printCsvRow(null, newRow);
+                        if (!isSkipPrint("old")) {
+                            printCsvRow(null, newRow);
+                        }
                         moveNew = true;
                         break;
                 }
@@ -152,13 +158,20 @@ public class LdapComparatorWorker implements Runnable {
                 }
 
                 // these remaining records are not in old result set, mark new rows as "+"
-                printCsvRow(null, newRow);
+                if (!isSkipPrint("new")) {
+                    printCsvRow(null, newRow);
+                }
             }
         } catch (Exception ex) {
             throw new LdapComparatorException("Ldap comparator worker failed, reason: " + ex.getMessage(), ex);
         } finally {
             statusLogger.printStatus(LOG, true, "Compared {} entries", count);
         }
+    }
+
+    private boolean isSkipPrint(String key) {
+        String skipPrint = options.getSkipPrint();
+        return skipPrint != null && skipPrint.contains(key);
     }
 
     private ResultSet createResultSet(String table, int workerId) throws SQLException {
