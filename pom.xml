@@ -51,7 +51,7 @@
         <hikaricp.version>3.2.0</hikaricp.version>
         <jcommander.version>1.72</jcommander.version>
         <groovy.version>2.5.1</groovy.version>
-        <commons.io.version>2.6</commons.io.version>
+        <commons.io.version>2.7</commons.io.version>
     </properties>
 
     <dependencyManagement>
